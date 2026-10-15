@@ -2,25 +2,91 @@ import { CulinaryPlace } from '../types';
 
 export const INITIAL_PLACES: CulinaryPlace[] = [
   {
-    id: 'place-1',
-    name: 'Waroeng Bambu Kampus ITK',
+    id: 'place-salwa',
+    name: 'Ayam Bakar Salwa',
     category: 'Warung Makan',
-    address: 'Jl. Soekarno Hatta Km 15, Karang Joang, Balikpapan Utara',
-    lat: -1.1534,
-    lng: 116.8625,
-    operatingHours: '09:00 - 21:00 WITA',
-    phone: '0812-3456-7890',
-    rating: 4.8,
-    reviewsCount: 142,
-    imageUrl: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=600&q=80',
-    featuredMenu: 'Ayam Goreng Sambal Bawang & Sayur Asem',
+    address: 'Jl. Sei Wain, Karang Joang, Kec. Balikpapan Utara, Balikpapan',
+    lat: -1.1520,
+    lng: 116.8635,
+    operatingHours: '10:00 - 21:30 WITA',
+    phone: '0812-4455-8899',
+    rating: 4.7,
+    reviewsCount: 168,
+    imageUrl: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
+    featuredMenu: 'Ayam Bakar Madu Spesial Sambal Terasi',
     priceRange: 'Murah',
     isVerified: true,
     menuList: [
-      { id: 'm1-1', name: 'Paket Ayam Goreng Kremes', price: 18000, isPopular: true },
-      { id: 'm1-2', name: 'Nasi Pecel Lele Bakar', price: 16000, isPopular: true },
-      { id: 'm1-3', name: 'Sayur Asem Segar', price: 5000 },
-      { id: 'm1-4', name: 'Es Teh Manis Jumbo', price: 4000 }
+      { id: 'ms-1', name: 'Paket Ayam Bakar Salwa + Es Teh', price: 22000, isPopular: true },
+      { id: 'ms-2', name: 'Ayam Penyet Sambal Korek', price: 20000, isPopular: true },
+      { id: 'ms-3', name: 'Tahu & Tempe Bacem', price: 6000 },
+      { id: 'ms-4', name: 'Sayur Lalapan Segar', price: 4000 }
+    ]
+  },
+  {
+    id: 'place-fatim',
+    name: 'Pawon Bu Fatim',
+    category: 'Warung Makan',
+    address: 'Jl. Soekarno Hatta Km 15, Karang Joang, Balikpapan Utara',
+    lat: -1.1545,
+    lng: 116.8610,
+    operatingHours: '08:30 - 21:00 WITA',
+    phone: '0813-9876-1234',
+    rating: 4.5,
+    reviewsCount: 112,
+    imageUrl: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&q=80',
+    featuredMenu: 'Nasi Rames Masakan Jawa & Soto Segar',
+    priceRange: 'Murah',
+    isVerified: true,
+    menuList: [
+      { id: 'mf-1', name: 'Nasi Campur Pawon Bu Fatim', price: 18000, isPopular: true },
+      { id: 'mf-2', name: 'Soto Daging Bening', price: 20000, isPopular: true },
+      { id: 'mf-3', name: 'Perkedel Kentang Rumahan', price: 3000 },
+      { id: 'mf-4', name: 'Es Jeruk Peras', price: 5000 }
+    ]
+  },
+  {
+    id: 'place-rahmad',
+    name: 'Waroeng Rahmad',
+    category: 'Warung Makan',
+    address: 'Jl. Sei Wain Dekat ITK, Karang Joang, Balikpapan Utara',
+    lat: -1.1510,
+    lng: 116.8640,
+    operatingHours: '09:00 - 22:00 WITA',
+    phone: '0852-1122-3344',
+    rating: 4.6,
+    reviewsCount: 145,
+    imageUrl: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&w=600&q=80',
+    featuredMenu: 'Nasi Goreng Mawut & Mie Dok-Dok Spesial',
+    priceRange: 'Murah',
+    isVerified: true,
+    menuList: [
+      { id: 'mr-1', name: 'Nasi Goreng Mawut Telur', price: 15000, isPopular: true },
+      { id: 'mr-2', name: 'Mie Dok-Dok Kuah Kental', price: 15000, isPopular: true },
+      { id: 'mr-3', name: 'Kopi Hitam Tubruk', price: 4000 },
+      { id: 'mr-4', name: 'Es Teh Manis', price: 3000 }
+    ]
+  },
+  {
+    id: 'place-nay',
+    name: 'Nay chicken geprek',
+    category: 'Warung Makan',
+    address: 'Jl. Soekarno Hatta Km 14, Karang Joang, Balikpapan Utara',
+    lat: -1.1570,
+    lng: 116.8665,
+    operatingHours: '10:00 - 22:00 WITA',
+    phone: '0821-5544-7788',
+    rating: 4.8,
+    reviewsCount: 220,
+    imageUrl: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?auto=format&fit=crop&w=600&q=80',
+    featuredMenu: 'Ayam Geprek Sambal Bawang Level 1-10',
+    priceRange: 'Murah',
+    isVerified: true,
+    menuList: [
+      { id: 'mn-1', name: 'Paket Geprek Keju Leleh', price: 19000, isPopular: true },
+      { id: 'mn-2', name: 'Paket Geprek Original Sambal Bawang', price: 16000, isPopular: true },
+      { id: 'mn-3', name: 'Kulit Ayam Crispy', price: 8000 },
+      { id: 'mn-4', name: 'Es Nutrisari Jeruk', price: 4000 }
     ]
   },
   {

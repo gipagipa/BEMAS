@@ -74,13 +74,23 @@ export function App() {
     );
   }
 
-  // 3. MAIN DASHBOARD VIEW (Sidebar + Header + Page Content)
+  // 3. MAIN DASHBOARD VIEW (Header on Top + Sidebar & Content Below, Exact Figma)
   return (
-    <div className="flex min-h-screen bg-[#FFF8F6] text-[#1E1715] antialiased justify-center selection:bg-[#FF5722] selection:text-white">
+    <div className="min-h-screen bg-[#FFF8F6] text-[#1E1715] flex flex-col antialiased selection:bg-[#FF5722] selection:text-white">
+      {/* HEADER TOP BAR (Exact Figma Design) */}
+      <Header
+        currentUser={currentUser}
+        onSwitchRole={handleSwitchRole}
+        onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
+        onOpenAuthModal={() => setCurrentView('login')}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        onLogoClick={() => setActiveTab('home')}
+      />
+
       {/* WRAPPER UTAMA (Maksimal 1440px sesuai desain Figma) */}
-      <div className="flex w-full max-w-[1440px] min-h-screen">
-        
-        {/* SIDEBAR (260px Sticky) */}
+      <div className="flex-1 flex w-full max-w-[1440px] mx-auto px-4 sm:px-8">
+        {/* SIDEBAR (Exact Figma) */}
         <Sidebar
           activeTab={activeTab}
           setActiveTab={setActiveTab}
@@ -90,19 +100,8 @@ export function App() {
 
         {/* MAIN AREA */}
         <div className="flex-1 flex flex-col min-w-0">
-          
-          {/* HEADER TOP BAR */}
-          <Header
-            currentUser={currentUser}
-            onSwitchRole={handleSwitchRole}
-            onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
-            onOpenAuthModal={() => setCurrentView('login')}
-            searchQuery={searchQuery}
-            setSearchQuery={setSearchQuery}
-          />
-
           {/* CONTENT BODY */}
-          <main className="p-4 sm:p-8 space-y-6 max-w-7xl w-full flex-1">
+          <main className="py-6 sm:py-8 space-y-6 w-full flex-1">
             {activeTab === 'home' && (
               <HomePage
                 currentUser={currentUser}
