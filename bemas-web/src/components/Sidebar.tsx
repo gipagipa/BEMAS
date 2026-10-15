@@ -1,24 +1,26 @@
 import React from 'react';
-import { ChefHat, MapPin, Heart, HelpCircle, Sparkles, Shield, Home } from 'lucide-react';
+import { ChefHat, MapPin, Heart, HelpCircle, Shield, Home, LogIn, LogOut } from 'lucide-react';
 import { User } from '../types';
 
 interface SidebarProps {
-  activeTab: 'recipe' | 'map' | 'favorites' | 'admin' | 'help';
-  setActiveTab: (tab: 'recipe' | 'map' | 'favorites' | 'admin' | 'help') => void;
+  activeTab: 'home' | 'recipe' | 'map' | 'favorites' | 'admin' | 'help';
+  setActiveTab: (tab: 'home' | 'recipe' | 'map' | 'favorites' | 'admin' | 'help') => void;
   currentUser: User | null;
+  onNavigateToLogin: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
   activeTab,
   setActiveTab,
-  currentUser
+  currentUser,
+  onNavigateToLogin
 }) => {
   return (
     <aside className="w-[260px] min-w-[260px] bg-white border-r border-[#F0E5E1] flex flex-col justify-between shrink-0 h-screen sticky top-0 z-40 overflow-y-auto no-scrollbar hidden md:flex">
       <div>
         {/* Brand Logo - Exact Figma Design */}
         <div 
-          onClick={() => setActiveTab('recipe')}
+          onClick={() => setActiveTab('home')}
           className="p-6 flex items-center gap-3 border-b border-[#F0E5E1]/70 cursor-pointer group"
         >
           <div className="w-10 h-10 rounded-2xl bg-[#FF5722] flex items-center justify-center text-white shadow-md shadow-orange-500/20 shrink-0 group-hover:scale-105 transition-transform">
@@ -36,8 +38,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
 
-        {/* Navigation Menu */}
+        {/* Navigation Menu (Exact Figma) */}
         <nav className="p-4 space-y-1.5">
+          {/* Beranda (Home) */}
+          <button
+            onClick={() => setActiveTab('home')}
+            className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl font-bold text-sm transition-colors text-left ${
+              activeTab === 'home'
+                ? 'bg-[#FFEBE6] text-[#FF5722]'
+                : 'text-[#786C68] hover:text-[#1E1715] hover:bg-orange-50/50 font-semibold'
+            }`}
+          >
+            <Home className="w-[18px] h-[18px]" />
+            <span>Beranda</span>
+          </button>
+
+          {/* Resep Dapur (AI) */}
           <button
             onClick={() => setActiveTab('recipe')}
             className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl font-bold text-sm transition-colors text-left ${
@@ -50,6 +66,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span>Resep Dapur (AI)</span>
           </button>
 
+          {/* Kuliner (Peta GIS) */}
           <button
             onClick={() => setActiveTab('map')}
             className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl font-bold text-sm transition-colors text-left ${
@@ -62,6 +79,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <span>Kuliner (Peta GIS)</span>
           </button>
 
+          {/* Favorit */}
           <button
             onClick={() => setActiveTab('favorites')}
             className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl font-bold text-sm transition-colors text-left ${
@@ -71,9 +89,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }`}
           >
             <Heart className="w-[18px] h-[18px]" />
-            <span>Resep & Lokasi Favorit</span>
+            <span>Resep &amp; Favorit</span>
           </button>
 
+          {/* Bantuan & Panduan */}
           <button
             onClick={() => setActiveTab('help')}
             className={`w-full flex items-center gap-3.5 px-4 py-3 rounded-2xl font-bold text-sm transition-colors text-left ${
@@ -83,10 +102,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }`}
           >
             <HelpCircle className="w-[18px] h-[18px]" />
-            <span>Bantuan & Lapor Bug</span>
+            <span>Bantuan &amp; Panduan</span>
           </button>
 
-          {/* Admin Tab (Only when admin role or switcher is active) */}
+          {/* Dasbor Admin (Active for Admin) */}
           {currentUser?.role === 'admin' && (
             <button
               onClick={() => setActiveTab('admin')}
@@ -100,17 +119,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <span>Dasbor Admin</span>
             </button>
           )}
+
+          {/* Quick link to Login / Register page */}
+          <button
+            onClick={onNavigateToLogin}
+            className="w-full flex items-center gap-3.5 px-4 py-2.5 rounded-2xl text-[#786C68] hover:text-[#FF5722] hover:bg-orange-50/50 font-semibold text-xs transition-colors text-left pt-3 border-t border-[#F0E5E1]"
+          >
+            <LogIn className="w-4 h-4" />
+            <span>Halaman Login / Ganti Akun</span>
+          </button>
         </nav>
       </div>
 
-      {/* Tips Dapur Card - Exact Figma Design */}
+      {/* Tips Dapur Card (Exact Figma) */}
       <div className="p-4 m-4 rounded-2xl bg-[#FFF1ED] border border-[#FFD8CF]">
         <div className="w-8 h-8 rounded-full bg-white text-[#FF5722] flex items-center justify-center mb-2 shadow-xs font-bold text-xs">
           💡
         </div>
         <h4 className="text-xs font-bold text-[#1E1715] mb-1">Tips Dapur Hari Ini</h4>
         <p className="text-[11px] text-[#786C68] leading-relaxed mb-2">
-          Bawang putih cincang tahan lebih awet & wangi jika direndam sedikit minyak kelapa dalam wadah kaca.
+          Bawang putih cincang tahan lebih awet &amp; wangi jika direndam sedikit minyak kelapa dalam wadah kaca.
         </p>
         <span 
           onClick={() => setActiveTab('recipe')}
