@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Favorit - BEMAS (Beli atau Masak)</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #FFF8F6;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #1E1715;
+      margin: 0;
+      padding: 0;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="flex min-h-screen bg-[#FFF8F6] text-[#1E1715] antialiased justify-center">
+
+  <!-- WRAPPER UTAMA (Maksimal 1440px agar presisi di Figma & responsif di browser) -->
+  <div class="flex w-full max-w-[1440px] min-h-screen">
+
+    <!-- SIDEBAR (260px Sticky) -->
+    <aside class="w-[260px] min-w-[260px] bg-white border-r border-[#F0E5E1] flex flex-col justify-between shrink-0 h-screen sticky top-0 z-40 overflow-y-auto no-scrollbar">
+      <div>
+        <!-- Brand Logo -->
+        <div class="p-6 flex items-center gap-3 border-b border-[#F0E5E1]/70">
+          <div class="w-10 h-10 rounded-2xl bg-[#FF5722] flex items-center justify-center text-white shadow-md shadow-orange-500/20 shrink-0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 2v6a3 3 0 0 1-3 3 3 3 0 0 1-3-3V2"></path>
+              <path d="M15 2v10"></path>
+              <path d="M15 12a3 3 0 0 1 3 3v7"></path>
+              <path d="M6 2v20"></path>
+              <path d="M6 7h4a2 2 0 0 0 2-2V2"></path>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-xl font-extrabold tracking-tight text-[#FF5722] leading-none">BEMAS</h1>
+            <p class="text-xs text-[#786C68] font-medium mt-1">Beli atau Masak</p>
+          </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="p-4 space-y-1.5">
+          <a href="#" class="flex items-center gap-3.5 px-4 py-3 rounded-2xl text-[#786C68] hover:text-[#1E1715] hover:bg-orange-50/50 font-semibold text-sm transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+            <span>Beranda</span>
+          </a>
+
+          <a href="#" class="flex items-center gap-3.5 px-4 py-3 rounded-2xl text-[#786C68] hover:text-[#1E1715] hover:bg-orange-50/50 font-semibold text-sm transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"></path>
+            </svg>
+            <span>Resep AI</span>
+          </a>
+
+          <a href="#" class="flex items-center gap-3.5 px-4 py-3 rounded-2xl text-[#786C68] hover:text-[#1E1715] hover:bg-orange-50/50 font-semibold text-sm transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <span>Kuliner (Peta GIS)</span>
+          </a>
+
+          <!-- Active Menu: Favorit -->
+          <a href="#" class="flex items-center gap-3.5 px-4 py-3 rounded-2xl bg-[#FFEBE6] text-[#FF5722] font-bold text-sm">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
+            </svg>
+            <span>Favorit</span>
+          </a>
+
+          <a href="#" class="flex items-center gap-3.5 px-4 py-3 rounded-2xl text-[#786C68] hover:text-[#1E1715] hover:bg-orange-50/50 font-semibold text-sm transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <span>Bantuan</span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- Quick AI Box in Sidebar -->
+      <div class="p-4 m-4 rounded-2xl bg-[#FFF1ED] border border-[#FFD8CF]">
+        <div class="w-8 h-8 rounded-full bg-white text-[#FF5722] flex items-center justify-center mb-2 shadow-xs font-bold text-xs">
+          💡
+        </div>
+        <h4 class="text-xs font-bold text-[#1E1715] mb-1">Bingung Hari Ini?</h4>
+        <p class="text-[11px] text-[#786C68] leading-relaxed mb-2">
+          Masukkan bahan di kulkas, AI BEMAS racik resep instan.
+        </p>
+        <button class="w-full py-2 bg-[#FF5722] hover:bg-[#E64A19] text-white rounded-xl text-xs font-bold transition-colors">
+          Mulai Racik
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN AREA -->
+    <div class="flex-1 flex flex-col min-w-0">
+
+      <!-- HEADER TOP BAR -->
+      <header class="bg-white border-b border-[#F0E5E1] px-8 py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+        <!-- Location Picker -->
+        <div class="flex items-center gap-2 bg-[#FFF8F6] border border-[#F0E5E1] px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#1E1715] cursor-pointer hover:border-orange-300 transition-colors shrink-0">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF5722" stroke-width="2.5">
+            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+          <span>Balikpapan, Kaltim</span>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#786C68" stroke-width="2.5">
+            <path d="m6 9 6 6 6-6"></path>
+          </svg>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="flex-1 max-w-xl mx-8 relative flex items-center">
+          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#786C68] pointer-events-none flex items-center">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
+          <input 
+            type="text" 
+            placeholder="Cari resep, bahan, atau lokasi kuliner..." 
+            class="w-full bg-[#FFF8F6] border border-[#F0E5E1] rounded-full pl-10 pr-12 py-2 text-xs text-[#1E1715] placeholder-[#786C68] focus:outline-none focus:border-[#FF5722] focus:bg-white transition-all font-medium"
+          >
+        </div>
+
+        <!-- User Profile & Notifications -->
+        <div class="flex items-center gap-3 shrink-0">
+          <div class="w-9 h-9 rounded-full bg-[#FFF8F6] flex items-center justify-center text-[#786C68] relative cursor-pointer hover:bg-orange-50 hover:text-[#FF5722] transition-colors">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+            </svg>
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#FF5722]"></span>
+          </div>
+          <div class="w-9 h-9 rounded-full bg-[#FF5722] text-white flex items-center justify-center font-bold text-xs shadow-sm cursor-pointer">
+            U
+          </div>
+        </div>
+      </header>
+
+      <!-- CONTENT BODY -->
+      <main class="p-8 space-y-6 max-w-7xl w-full">
+
+        <!-- BANNER / TITLE SECTION -->
+        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFEBE6] text-[#FF5722] text-xs font-bold mb-2">
+              <span>♡ Tersimpan di Dapur &amp; Perjalanan</span>
+              <span>•</span>
+              <span class="text-emerald-700 font-medium">Sinkron otomatis dengan kulkasmu</span>
+            </div>
+            <h2 class="text-3xl font-extrabold tracking-tight text-[#1E1715] mb-1">
+              Koleksi Rasa Favoritmu
+            </h2>
+            <p class="text-sm text-[#786C68] max-w-2xl leading-relaxed">
+              Kumpulan racikan resep rumahan andalan dan spot kuliner langganan Balikpapan yang siap kamu buat atau kunjungi lagi kapan saja.
+            </p>
+          </div>
+          <div class="flex items-center gap-2.5 shrink-0">
+            <button class="px-5 py-2.5 bg-[#FF5722] hover:bg-[#E64A19] text-white rounded-2xl text-xs font-bold flex items-center gap-2 shadow-xs transition-colors">
+              <span>+ Catat Resep Sendiri</span>
+            </button>
+            <button aria-label="Share" class="w-10 h-10 rounded-2xl bg-white hover:bg-orange-50 border border-[#F0E5E1] text-[#786C68] hover:text-[#FF5722] flex items-center justify-center text-xs transition-colors">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="18" cy="5" r="3"></circle>
+                <circle cx="6" cy="12" r="3"></circle>
+                <circle cx="18" cy="19" r="3"></circle>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- DUAL PILL SWITCHER & QUICK SEARCH -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div class="p-1 bg-[#FFF1ED] rounded-2xl flex items-center gap-1 border border-[#FFD8CF] overflow-x-auto no-scrollbar">
+            <button class="px-5 py-2.5 bg-[#FF5722] text-white rounded-xl text-xs font-bold shadow-xs flex items-center gap-2 whitespace-nowrap">
+              <span>🍲</span>
+              <span>Resep Masakan (8 Resep)</span>
+            </button>
+            <button class="px-5 py-2.5 text-[#786C68] hover:text-[#1E1715] rounded-xl text-xs font-semibold flex items-center gap-2 transition-colors whitespace-nowrap">
+              <span>🏪</span>
+              <span>Spot Kuliner Langganan (5 Tempat)</span>
+            </button>
+          </div>
+          <div class="relative w-full sm:w-72 flex items-center">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-[#786C68] text-xs pointer-events-none">
+              🔍
+            </span>
+            <input 
+              type="text" 
+              placeholder="Cari nama resep, bahan, resto..." 
+              class="w-full bg-white border border-[#F0E5E1] rounded-2xl pl-9 pr-3 py-2.5 text-xs text-[#1E1715] placeholder-[#786C68] focus:outline-none focus:border-[#FF5722] font-medium transition-all"
+            >
+          </div>
+        </div>
+
+        <!-- FILTER TAGS -->
+        <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+          <button class="px-4 py-2 bg-[#FF5722] text-white rounded-full text-xs font-bold shadow-xs whitespace-nowrap">
+            Semua Favorit
+          </button>
+          <button class="px-4 py-2 bg-white hover:bg-orange-50 border border-[#F0E5E1] text-[#786C68] hover:text-[#1E1715] rounded-full text-xs font-semibold whitespace-nowrap transition-colors">
+            ● Bahan Siap di Kulkas (3)
+          </button>
+          <button class="px-4 py-2 bg-white hover:bg-orange-50 border border-[#F0E5E1] text-[#786C68] hover:text-[#1E1715] rounded-full text-xs font-semibold whitespace-nowrap transition-colors">
+            ⚡ Sarapan Kilat (&lt;15 mnt)
+          </button>
+          <button class="px-4 py-2 bg-white hover:bg-orange-50 border border-[#F0E5E1] text-[#786C68] hover:text-[#1E1715] rounded-full text-xs font-semibold whitespace-nowrap transition-colors">
+            👨👩👧 Keluarga &amp; Anak
+          </button>
+          <button class="px-4 py-2 bg-white hover:bg-orange-50 border border-[#F0E5E1] text-[#786C68] hover:text-[#1E1715] rounded-full text-xs font-semibold whitespace-nowrap transition-colors">
+            💸 Hemat Budget (&lt;Rp 20k)
+          </button>
+        </div>
+
+        <!-- MAIN CONTENT: 2 COLUMNS (8 COLS RECIPES, 4 COLS STATS & SHORTCUTS) -->
+        <div class="grid grid-cols-12 gap-8 items-start">
+
+          <!-- LEFT (8 COLS): GRID RECIPE CARDS -->
+          <div class="col-span-12 lg:col-span-8 space-y-4">
+            <div class="flex items-center justify-between text-xs">
+              <div>
+                <h3 class="font-bold text-base text-[#1E1715]">Resep Siap Eksekusi</h3>
+                <span class="text-[#786C68]">Diurutkan berdasarkan ketersediaan bahan</span>
+              </div>
+              <div class="text-xs text-[#786C68] flex items-center gap-1.5">
+                <span>Sortir:</span>
+                <span class="font-bold text-[#FF5722] bg-white border border-[#F0E5E1] px-2.5 py-1 rounded-lg cursor-pointer">
+                  Kulkas Ready ▾
+                </span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+
+              <!-- RECIPE CARD 1: Tumis Tahu Telur -->
+              <div class="bg-white rounded-3xl border border-[#F0E5E1] p-4 shadow-xs space-y-3 hover:border-orange-200 transition-colors flex flex-col justify-between">
+                <div class="space-y-3">
+                  <div class="relative h-44 rounded-2xl overflow-hidden">
+                    <img 
+                      src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80" 
+                      alt="Tumis Tahu Telur" 
+                      class="w-full h-full object-cover"
+                    >
+                    <span class="absolute top-2.5 left-2.5 bg-emerald-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-xs">
+                      ✓ Bahan Lengkap di Kulkas
+                    </span>
+                    <span class="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-white/90 text-red-500 flex items-center justify-center text-xs shadow-xs cursor-pointer hover:bg-white">
+                      ♥
+                    </span>
+                    <span class="absolute bottom-2.5 left-2.5 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded">
+                      ★ 4.9 (142)
+                    </span>
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2 text-[11px] text-[#786C68] mb-1 flex-wrap">
+                      <span>⏱ 15 Menit</span>
+                      <span>•</span>
+                      <span>Tingkat: Sangat Mudah</span>
+                      <span>•</span>
+                      <span class="font-bold text-[#1E1715]">Est. Rp 14.500</span>
+                    </div>
+                    <h4 class="font-bold text-sm text-[#1E1715] mb-1">
+                      Tumis Tahu Telur Gurih Manis
+                    </h4>
+                    <p class="text-[11px] text-[#786C68] line-clamp-2 leading-relaxed mb-3">
+                      Tahu putih lembut digoreng setengah matang, dipadukan orak-arik telur segar dan karamelisasi kecap manis.
+                    </p>
+                    <div class="flex flex-wrap gap-1.5 text-[10px] text-[#786C68]">
+                      <span class="bg-[#FFF8F6] border border-[#F0E5E1] px-2 py-0.5 rounded">2 Tahu Sutra</span>
+                      <span class="bg-[#FFF8F6] border border-[#F0E5E1] px-2 py-0.5 rounded">2 Butir Telur</span>
+                      <span class="bg-[#FFF8F6] border border-[#F0E5E1] px-2 py-0.5 rounded">Kecap Manis</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="space-y-1.5 pt-2">
+                  <button class="w-full py-2.5 bg-[#FF5722] hover:bg-[#E64A19] text-white rounded-xl text-xs font-bold transition-colors">
+                    Mulai Masak Sekarang
+                  </button>
+                  <button class="w-full py-1.5 text-[11px] text-[#FF5722] font-semibold hover:underline flex items-center justify-center gap-1">
+                    <span>📍 Malas Masak? Cek Warung Tahu Tek (380m)</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- RECIPE CARD 2: Sup Wortel Tahu Kuah Bening -->
+              <div class="bg-white rounded-3xl border border-[#F0E5E1] p-4 shadow-xs space-y-3 hover:border-orange-200 transition-colors flex flex-col justify-between">
+                <div class="space-y-3">
+                  <div class="relative h-44 rounded-2xl overflow-hidden">
+                    <img 
+                      src="https://images.unsplash.com/photo-1547592180-85f173990554?auto=format&fit=crop&w=500&q=80" 
+                      alt="Sup Wortel Tahu" 
+                      class="w-full h-full object-cover"
+                    >
+                    <span class="absolute top-2.5 left-2.5 bg-amber-600 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-xs">
+                      🔔 Kurang 1 Bahan (Daun Bawang)
+                    </span>
+                    <span class="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-white/90 text-red-500 flex items-center justify-center text-xs shadow-xs cursor-pointer hover:bg-white">
+                      ♥
+                    </span>
+                    <span class="absolute bottom-2.5 left-2.5 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded">
+                      ★ 4.8 (98)
+                    </span>
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2 text-[11px] text-[#786C68] mb-1 flex-wrap">
+                      <span>⏱ 20 Menit</span>
+                      <span>•</span>
+                      <span>Sehat &amp; Hangat</span>
+                      <span>•</span>
+                      <span class="font-bold text-[#1E1715]">Est. Rp 11.000</span>
+                    </div>
+                    <h4 class="font-bold text-sm text-[#1E1715] mb-1">
+                      Sup Wortel Tahu Kuah Bening
+                    </h4>
+                    <p class="text-[11px] text-[#786C68] line-clamp-2 leading-relaxed mb-3">
+                      Kaldu ayam bening kaya aroma bawang putih goreng dan lada putih geprek, menyegarkan di musim hujan.
+                    </p>
+                    <div class="p-2 rounded-xl bg-[#FFF4F0] border border-[#FFD8CF] flex items-center justify-between text-[10px]">
+                      <span class="text-[#786C68]">3/4 Bahan di Kulkas</span>
+                      <span class="text-[#FF5722] font-bold">Sayur Segar Jl. Minyak (~400m)</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="flex gap-2 pt-2">
+                  <button class="flex-1 py-2.5 bg-[#FFF8F6] hover:bg-orange-50 border border-[#F0E5E1] text-[#1E1715] rounded-xl text-xs font-bold transition-colors">
+                    Buka Resep
+                  </button>
+                  <button class="flex-1 py-2.5 bg-white hover:bg-orange-50 border border-[#FFD8CF] text-[#FF5722] rounded-xl text-xs font-bold transition-colors">
+                    Beli Daun Bawang
+                  </button>
+                </div>
+              </div>
+
+              <!-- RECIPE CARD 3: Ayam Goreng Lengkuas -->
+              <div class="bg-white rounded-3xl border border-[#F0E5E1] p-4 shadow-xs space-y-3 hover:border-orange-200 transition-colors flex flex-col justify-between">
+                <div class="space-y-3">
+                  <div class="relative h-44 rounded-2xl overflow-hidden">
+                    <img 
+                      src="https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=500&q=80" 
+                      alt="Ayam Goreng Lengkuas" 
+                      class="w-full h-full object-cover"
+                    >
+                    <span class="absolute top-2.5 left-2.5 bg-[#1E1715]/80 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-xs">
+                      🍱 Menu Andalan Akhir Pekan
+                    </span>
+                    <span class="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-white/90 text-red-500 flex items-center justify-center text-xs shadow-xs cursor-pointer hover:bg-white">
+                      ♥
+                    </span>
+                    <span class="absolute bottom-2.5 left-2.5 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded">
+                      ★ 4.9 (210)
+                    </span>
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2 text-[11px] text-[#786C68] mb-1 flex-wrap">
+                      <span>⏱ 35 Menit</span>
+                      <span>•</span>
+                      <span>Porsi Keluarga (4 Org)</span>
+                      <span>•</span>
+                      <span class="font-bold text-[#1E1715]">Est. Rp 38.000</span>
+                    </div>
+                    <h4 class="font-bold text-sm text-[#1E1715] mb-1">
+                      Ayam Goreng Lengkuas Renyah
+                    </h4>
+                    <p class="text-[11px] text-[#786C68] line-clamp-2 leading-relaxed mb-3">
+                      Bumbu ungkep meresap hingga ke tulang dengan serundeng lengkuas parut renyah gurih.
+                    </p>
+                    <div class="flex flex-wrap gap-1.5 text-[10px] text-[#786C68]">
+                      <span class="bg-[#FFF8F6] border border-[#F0E5E1] px-2 py-0.5 rounded">1/2 Ekor Ayam</span>
+                      <span class="bg-[#FFF8F6] border border-[#F0E5E1] px-2 py-0.5 rounded">150g Lengkuas</span>
+                      <span class="bg-[#FFF8F6] border border-[#F0E5E1] px-2 py-0.5 rounded">Kunyit &amp; Ketumbar</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="pt-2">
+                  <button class="w-full py-2.5 bg-[#FFF8F6] hover:bg-orange-50 border border-[#F0E5E1] text-[#1E1715] rounded-xl text-xs font-bold transition-colors">
+                    Buka Resep &amp; Langkah
+                  </button>
+                </div>
+              </div>
+
+              <!-- RECIPE CARD 4: Telur Dadar Sayur Tebal -->
+              <div class="bg-white rounded-3xl border border-[#F0E5E1] p-4 shadow-xs space-y-3 hover:border-orange-200 transition-colors flex flex-col justify-between">
+                <div class="space-y-3">
+                  <div class="relative h-44 rounded-2xl overflow-hidden">
+                    <img 
+                      src="https://images.unsplash.com/photo-1525351484163-7529414344d8?auto=format&fit=crop&w=500&q=80" 
+                      alt="Telur Dadar Sayur" 
+                      class="w-full h-full object-cover"
+                    >
+                    <span class="absolute top-2.5 left-2.5 bg-emerald-700 text-white text-[10px] font-bold px-2.5 py-1 rounded-full shadow-xs">
+                      ✓ Bahan Siap di Kulkas
+                    </span>
+                    <span class="absolute top-2.5 right-2.5 w-7 h-7 rounded-full bg-white/90 text-red-500 flex items-center justify-center text-xs shadow-xs cursor-pointer hover:bg-white">
+                      ♥
+                    </span>
+                    <span class="absolute bottom-2.5 left-2.5 bg-black/60 text-white text-[10px] font-bold px-2 py-0.5 rounded">
+                      ★ 4.9 (185)
+                    </span>
+                  </div>
+                  <div>
+                    <div class="flex items-center gap-2 text-[11px] text-[#786C68] mb-1 flex-wrap">
+                      <span>⏱ 15 Menit</span>
+                      <span>•</span>
+                      <span>Tinggi Protein</span>
+                      <span>•</span>
+                      <span class="font-bold text-[#1E1715]">Est. Rp 9.500</span>
+                    </div>
+                    <h4 class="font-bold text-sm text-[#1E1715] mb-1">
+                      Telur Dadar Sayur Tebal Padang
+                    </h4>
+                    <p class="text-[11px] text-[#786C68] line-clamp-2 leading-relaxed mb-3">
+                      Renyah di luar dan empuk tebal di dalam dengan paduan daun bawang, cabai merah keriting, dan telur bebek.
+                    </p>
+                    <div class="flex flex-wrap gap-1.5 text-[10px] text-[#786C68]">
+                      <span class="bg-[#FFF8F6] border border-[#F0E5E1] px-2 py-0.5 rounded">3 Telur Bebek/Ayam</span>
+                      <span class="bg-[#FFF8F6] border border-[#F0E5E1] px-2 py-0.5 rounded">Daun Bawang</span>
+                      <span class="bg-[#FFF8F6] border border-[#F0E5E1] px-2 py-0.5 rounded">Bawang Merah</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="space-y-1.5 pt-2">
+                  <button class="w-full py-2.5 bg-[#FF5722] hover:bg-[#E64A19] text-white rounded-xl text-xs font-bold transition-colors">
+                    Mulai Masak Sekarang
+                  </button>
+                  <span class="block text-center text-[10px] text-[#786C68]">
+                    Ada di RM Padang Simpang Tiga (620m)
+                  </span>
+                </div>
+              </div>
+
+            </div>
+
+            <!-- Pagination / More Button -->
+            <div class="pt-2 text-center">
+              <button class="px-6 py-2.5 bg-white hover:bg-orange-50 border border-[#F0E5E1] text-[#786C68] rounded-full text-xs font-semibold hover:border-[#FF5722] hover:text-[#FF5722] transition-colors">
+                Lihat 4 Resep Favorit Lainnya ▾
+              </button>
+            </div>
+          </div>
+
+          <!-- RIGHT (4 COLS): STATISTIK & SPOT KULINER LANGGANAN -->
+          <div class="col-span-12 lg:col-span-4 space-y-5">
+
+            <!-- STATISTIK DAPUR CERIA -->
+            <div class="bg-white rounded-3xl p-5 border border-[#F0E5E1] shadow-xs space-y-4">
+              <div class="flex items-center justify-between border-b border-[#F0E5E1] pb-3">
+                <h4 class="font-bold text-sm text-[#1E1715] flex items-center gap-2">
+                  <span>📈</span>
+                  <span>Statistik Dapur Ceria</span>
+                </h4>
+                <span class="text-[10px] bg-[#FFF1ED] text-[#FF5722] font-bold px-2 py-0.5 rounded-full">
+                  Bulan Ini
+                </span>
+              </div>
+              <div class="grid grid-cols-2 gap-3 text-center">
+                <div class="p-3 rounded-2xl bg-[#FFF8F6] border border-[#F0E5E1]">
+                  <span class="text-[10px] text-[#786C68] block">Sering Dimasak</span>
+                  <span class="text-xl font-extrabold text-[#FF5722]">14</span>
+                  <span class="text-[10px] text-emerald-700 block font-semibold">+4 dari bulan lalu</span>
+                </div>
+                <div class="p-3 rounded-2xl bg-[#FFF8F6] border border-[#F0E5E1]">
+                  <span class="text-[10px] text-[#786C68] block">Est. Hemat Masak</span>
+                  <span class="text-xl font-extrabold text-emerald-700">Rp 142k</span>
+                  <span class="text-[10px] text-[#786C68] block">vs Beli di luar</span>
+                </div>
+              </div>
+              <div class="p-3 rounded-2xl bg-[#FFF4F0] border border-[#FFD8CF] text-[11px] space-y-1">
+                <div class="flex justify-between font-bold">
+                  <span class="text-[#1E1715]">Rasio Memasak (68% Masak Sendiri)</span>
+                  <span class="text-[#FF5722]">Hebat!</span>
+                </div>
+                <div class="w-full bg-white h-2 rounded-full overflow-hidden border border-[#FFD8CF]">
+                  <div class="bg-[#FF5722] h-full rounded-full" style="width: 68%;"></div>
+                </div>
+                <div class="flex justify-between text-[10px] text-[#786C68] pt-1">
+                  <span>● Masak (14x)</span>
+                  <span>● Beli Kuliner (6x)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- SPOT KULINER LANGGANAN SHORTCUT -->
+            <div class="bg-white rounded-3xl p-5 border border-[#F0E5E1] shadow-xs space-y-3.5">
+              <div class="flex items-center justify-between">
+                <h4 class="font-bold text-sm text-[#1E1715] flex items-center gap-2">
+                  <span>📍</span>
+                  <span>Spot Kuliner Langganan</span>
+                </h4>
+                <a href="#" class="text-[11px] font-bold text-[#FF5722] hover:underline">Peta GIS</a>
+              </div>
+              <p class="text-[11px] text-[#786C68]">Dekat posisimu saat ini</p>
+
+              <!-- Spot 1 -->
+              <div class="flex items-center gap-3 p-2.5 rounded-2xl hover:bg-[#FFF8F6] border border-[#F0E5E1] transition-colors">
+                <img 
+                  src="https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=150&q=80" 
+                  alt="Tahu Cak Man" 
+                  class="w-12 h-12 rounded-xl object-cover shrink-0"
+                >
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between text-[11px]">
+                    <h5 class="font-bold text-xs text-[#1E1715] truncate">Tahu Telur Cak Man</h5>
+                    <span class="text-yellow-500 font-bold">★ 4.8</span>
+                  </div>
+                  <span class="text-[10px] text-[#786C68] block truncate">380m • Jl. Ahmad Yani</span>
+                  <span class="text-[10px] text-emerald-700 font-medium">✓ Pernah dikunjungi 3x</span>
+                </div>
+                <button aria-label="Lihat spot" class="w-7 h-7 rounded-lg bg-white hover:bg-orange-50 border border-[#F0E5E1] text-[#FF5722] flex items-center justify-center text-xs transition-colors shrink-0">
+                  ➔
+                </button>
+              </div>
+
+              <!-- Spot 2 -->
+              <div class="flex items-center gap-3 p-2.5 rounded-2xl hover:bg-[#FFF8F6] border border-[#F0E5E1] transition-colors">
+                <img 
+                  src="https://images.unsplash.com/photo-1598515214211-89d3c73ae83b?auto=format&fit=crop&w=150&q=80" 
+                  alt="Ayam Salwa" 
+                  class="w-12 h-12 rounded-xl object-cover shrink-0"
+                >
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center justify-between text-[11px]">
+                    <h5 class="font-bold text-xs text-[#1E1715] truncate">Ayam Bakar Salwa</h5>
+                    <span class="text-yellow-500 font-bold">★ 4.7</span>
+                  </div>
+                  <span class="text-[10px] text-[#786C68] block truncate">460m • Pasar Segar Bpp</span>
+                  <span class="text-[10px] text-[#FF5722] font-medium">🍱 Langganan Makan Malam</span>
+                </div>
+                <button aria-label="Lihat spot" class="w-7 h-7 rounded-lg bg-white hover:bg-orange-50 border border-[#F0E5E1] text-[#FF5722] flex items-center justify-center text-xs transition-colors shrink-0">
+                  ➔
+                </button>
+              </div>
+
+              <button class="w-full py-2 bg-[#FFF8F6] border border-[#F0E5E1] text-[#1E1715] rounded-xl text-xs font-bold hover:bg-[#FFEBE6] hover:text-[#FF5722] transition-colors">
+                Buka Semua Spot di Peta Balikpapan
+              </button>
+            </div>
+
+            <!-- PROMPT CATATAN KELUARGA -->
+            <div class="p-4 rounded-3xl bg-gradient-to-br from-[#FFF4F0] to-[#FFEBE6] border border-[#FFD8CF] space-y-2">
+              <div class="w-8 h-8 rounded-xl bg-[#FF5722] text-white flex items-center justify-center text-sm font-bold shadow-xs">
+                📝
+              </div>
+              <h5 class="text-xs font-extrabold text-[#1E1715]">Punya Resep Rahasia Keluarga?</h5>
+              <p class="text-[11px] text-[#786C68] leading-relaxed">
+                Simpan takaran bumbu warisan ibu atau resep kreasi sendiri agar tidak lupa dan bisa disesuaikan otomatis dengan stok kulkasmu.
+              </p>
+              <button class="w-full py-2 bg-[#FF5722] hover:bg-[#E64A19] text-white rounded-xl text-xs font-bold mt-1 transition-colors">
+                + Buat Catatan Resep Baru
+              </button>
+            </div>
+
+          </div>
+
+        </div>
+
+      </main>
+
+    </div>
+
+  </div>
+
+</body>
+</html>

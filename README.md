@@ -61,8 +61,8 @@ Sesuai dokumen spesifikasi **SRS & SDD**, berikut status implementasi dari 11 Us
 ### Langkah-langkah:
 1. **Clone repository ini:**
    ```bash
-   git clone <URL_REPO_GITHUB_ANDA>
-   cd ippl/bemas-web
+   git clone https://github.com/gipagipa/BEMAS.git
+   cd BEMAS/bemas-web
    ```
 2. **Install dependensi:**
    ```bash

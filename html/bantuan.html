@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bantuan & Panduan - BEMAS (Beli atau Masak)</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      background-color: #FFF8F6;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: #1E1715;
+      margin: 0;
+      padding: 0;
+    }
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="flex min-h-screen bg-[#FFF8F6] text-[#1E1715] antialiased justify-center">
+
+  <!-- WRAPPER UTAMA (Max 1440px terpusat agar seluruh kotak & kartu terlihat utuh tanpa terpotong) -->
+  <div class="flex w-full max-w-[1440px] min-h-screen">
+
+    <!-- SIDEBAR (260px Sticky) -->
+    <aside class="w-[260px] min-w-[260px] bg-white border-r border-[#F0E5E1] flex flex-col justify-between shrink-0 h-screen sticky top-0 z-40 overflow-y-auto no-scrollbar">
+      <div>
+        <!-- Brand Logo -->
+        <div class="p-6 flex items-center gap-3 border-b border-[#F0E5E1]/70">
+          <div class="w-10 h-10 rounded-2xl bg-[#FF5722] flex items-center justify-center text-white shadow-md shadow-orange-500/20 shrink-0">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M18 2v6a3 3 0 0 1-3 3 3 3 0 0 1-3-3V2"></path>
+              <path d="M15 2v10"></path>
+              <path d="M15 12a3 3 0 0 1 3 3v7"></path>
+              <path d="M6 2v20"></path>
+              <path d="M6 7h4a2 2 0 0 0 2-2V2"></path>
+            </svg>
+          </div>
+          <div>
+            <h1 class="text-xl font-extrabold tracking-tight text-[#FF5722] leading-none">BEMAS</h1>
+            <p class="text-xs text-[#786C68] font-medium mt-1">Beli atau Masak</p>
+          </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="p-4 space-y-1.5">
+          <a href="#" class="flex items-center gap-3.5 px-4 py-3 rounded-2xl text-[#786C68] hover:text-[#1E1715] hover:bg-orange-50/50 font-semibold text-sm transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+            </svg>
+            <span>Beranda</span>
+          </a>
+
+          <a href="#" class="flex items-center gap-3.5 px-4 py-3 rounded-2xl text-[#786C68] hover:text-[#1E1715] hover:bg-orange-50/50 font-semibold text-sm transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z"></path>
+            </svg>
+            <span>Resep AI</span>
+          </a>
+
+          <a href="#" class="flex items-center gap-3.5 px-4 py-3 rounded-2xl text-[#786C68] hover:text-[#1E1715] hover:bg-orange-50/50 font-semibold text-sm transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+              <circle cx="12" cy="10" r="3"></circle>
+            </svg>
+            <span>Kuliner (Peta GIS)</span>
+          </a>
+
+          <a href="#" class="flex items-center gap-3.5 px-4 py-3 rounded-2xl text-[#786C68] hover:text-[#1E1715] hover:bg-orange-50/50 font-semibold text-sm transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"></path>
+            </svg>
+            <span>Favorit</span>
+          </a>
+
+          <!-- Active Menu: Bantuan & Panduan -->
+          <a href="#" class="flex items-center gap-3.5 px-4 py-3 rounded-2xl bg-[#FFEBE6] text-[#FF5722] font-bold text-sm">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+            <span>Bantuan &amp; Panduan</span>
+          </a>
+        </nav>
+      </div>
+
+      <!-- Quick Tips Card in Sidebar -->
+      <div class="p-4 m-4 rounded-2xl bg-[#FFF1ED] border border-[#FFD8CF]">
+        <div class="w-8 h-8 rounded-full bg-white text-[#FF5722] flex items-center justify-center mb-2 shadow-xs font-bold text-xs">
+          💡
+        </div>
+        <h4 class="text-xs font-bold text-[#1E1715] mb-1">Tips Dapur Hari Ini</h4>
+        <p class="text-[11px] text-[#786C68] leading-relaxed mb-2">
+          Simpan bumbu dapur basah dalam wadah kedap udara agar tahan hingga 2 minggu.
+        </p>
+        <span class="text-[11px] text-[#FF5722] font-bold cursor-pointer hover:underline">
+          Buka Panduan →
+        </span>
+      </div>
+    </aside>
+
+    <!-- MAIN AREA (Fluid & Responsif) -->
+    <div class="flex-1 flex flex-col min-w-0">
+
+      <!-- HEADER TOP BAR -->
+      <header class="bg-white border-b border-[#F0E5E1] px-8 py-3.5 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+        <!-- Location Picker -->
+        <div class="flex items-center gap-2 bg-[#FFF8F6] border border-[#F0E5E1] px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#1E1715] cursor-pointer hover:border-orange-300 transition-colors shrink-0">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#FF5722" stroke-width="2.5">
+            <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path>
+            <circle cx="12" cy="10" r="3"></circle>
+          </svg>
+          <span>Balikpapan, Kaltim</span>
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#786C68" stroke-width="2.5">
+            <path d="m6 9 6 6 6-6"></path>
+          </svg>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="flex-1 max-w-xl mx-8 relative flex items-center">
+          <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#786C68] pointer-events-none flex items-center">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </span>
+          <input 
+            type="text" 
+            placeholder="Cari resep cepat, bahan masakan, kuliner lokal..." 
+            class="w-full bg-[#FFF8F6] border border-[#F0E5E1] rounded-full pl-10 pr-12 py-2 text-xs text-[#1E1715] placeholder-[#786C68] focus:outline-none focus:border-[#FF5722] focus:bg-white transition-all font-medium"
+          >
+          <span class="absolute right-3.5 top-1/2 -translate-y-1/2 text-[10px] text-[#786C68] border border-[#F0E5E1] px-1.5 py-0.5 rounded bg-white font-mono pointer-events-none">
+            ⌘K
+          </span>
+        </div>
+
+        <!-- User Profile & Notifications -->
+        <div class="flex items-center gap-3 shrink-0">
+          <div class="w-9 h-9 rounded-full bg-[#FFF8F6] flex items-center justify-center text-[#786C68] relative cursor-pointer hover:bg-orange-50 hover:text-[#FF5722] transition-colors">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+            </svg>
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#FF5722]"></span>
+          </div>
+          <div class="flex items-center gap-2.5 pl-2 cursor-pointer">
+            <div class="w-9 h-9 rounded-full bg-[#FF5722] text-white flex items-center justify-center font-bold text-xs shadow-sm">
+              U
+            </div>
+            <div class="leading-tight hidden sm:block">
+              <span class="block text-xs font-bold text-[#1E1715]">Dapur Utami</span>
+              <span class="text-[10px] text-[#786C68]">Koki Rumahan</span>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- CONTENT BODY -->
+      <main class="p-8 space-y-8 max-w-7xl w-full">
+
+        <!-- Breadcrumbs -->
+        <div class="flex items-center gap-2 text-xs text-[#786C68] font-medium">
+          <span>Beranda</span>
+          <span class="text-[10px] text-[#786C68]">›</span>
+          <span class="text-[#FF5722] font-semibold">Pusat Bantuan &amp; Panduan Pengguna BEMAS</span>
+        </div>
+
+        <!-- HERO SEARCH CARD -->
+        <div class="bg-white rounded-3xl p-8 border border-[#F0E5E1] shadow-sm relative overflow-hidden">
+          <div class="relative z-10 max-w-3xl">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFEBE6] text-[#FF5722] text-xs font-bold mb-3">
+              <span>📖 Pusat Bantuan &amp; Edukasi Dapur</span>
+            </div>
+            <h2 class="text-3xl font-extrabold tracking-tight text-[#1E1715] mb-2">
+              Ada yang bisa kami bantu seputar <span class="text-[#FF5722]">BEMAS</span>?
+            </h2>
+            <p class="text-sm text-[#786C68] leading-relaxed mb-6">
+              Pelajari cara memaksimalkan fitur Racik Resep AI, eksplorasi warung makan &amp; peta bahan segar Balikpapan, serta tips mengelola kulkas cerdas agar dapur tetap hemat dan menyenangkan.
+            </p>
+
+            <!-- Search Input -->
+            <div class="flex items-center gap-2 mb-3">
+              <div class="relative flex-1 flex items-center">
+                <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-[#786C68] text-xs pointer-events-none">
+                  🔍
+                </span>
+                <input 
+                  type="text" 
+                  placeholder="Cari topik panduan atau kendala (cth: cara racik resep, atur radius GIS, simpan favorit)..." 
+                  class="w-full bg-[#FFF8F6] border border-[#F0E5E1] rounded-2xl pl-10 pr-4 py-3.5 text-xs text-[#1E1715] placeholder-[#786C68] focus:outline-none focus:border-[#FF5722] focus:bg-white font-medium transition-all"
+                >
+              </div>
+              <button class="px-7 py-3.5 bg-[#FF5722] hover:bg-[#E64A19] text-white rounded-2xl text-xs font-bold shadow-sm transition-colors shrink-0">
+                Cari
+              </button>
+            </div>
+
+            <!-- Tags -->
+            <div class="flex flex-wrap items-center gap-2 text-xs pt-1">
+              <span class="text-[#786C68] text-[11px] font-medium">Pencarian Populer:</span>
+              <span class="px-2.5 py-1 bg-[#FFF8F6] border border-[#F0E5E1] rounded-full text-[#1E1715] text-[11px] cursor-pointer hover:border-[#FF5722] transition-colors">Cara Racik Resep AI</span>
+              <span class="px-2.5 py-1 bg-[#FFF8F6] border border-[#F0E5E1] rounded-full text-[#1E1715] text-[11px] cursor-pointer hover:border-[#FF5722] transition-colors">Akurasi Peta GIS</span>
+              <span class="px-2.5 py-1 bg-[#FFF8F6] border border-[#F0E5E1] rounded-full text-[#1E1715] text-[11px] cursor-pointer hover:border-[#FF5722] transition-colors">Sinkron Kulkas</span>
+              <span class="px-2.5 py-1 bg-[#FFF8F6] border border-[#F0E5E1] rounded-full text-[#1E1715] text-[11px] cursor-pointer hover:border-[#FF5722] transition-colors">Kalkulasi Hemat Biaya</span>
+              <span class="px-2.5 py-1 bg-[#FFF8F6] border border-[#F0E5E1] rounded-full text-[#1E1715] text-[11px] cursor-pointer hover:border-[#FF5722] transition-colors">Tambah Resep Sendiri</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4 CORE PILLARS WALKTHROUGH (Grid 4 Kolom yang Responsif & Rapi) -->
+        <div>
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="text-lg font-extrabold text-[#1E1715]">Panduan Kilat 4 Pilar BEMAS</h3>
+              <p class="text-xs text-[#786C68]">Langkah terarah untuk mengubah dilema lapar jadi solusi kenyang bersahaja.</p>
+            </div>
+            <span class="text-xs text-[#FF5722] font-bold bg-[#FFEBE6] px-3 py-1 rounded-full">
+              Solusi Sehari-hari
+            </span>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+            <!-- Pilar 1 -->
+            <div class="bg-white rounded-3xl border border-[#F0E5E1] p-5 shadow-sm space-y-3 hover:border-orange-300 transition-all flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="w-10 h-10 rounded-2xl bg-[#FFEBE6] text-[#FF5722] flex items-center justify-center text-lg font-bold">
+                  🤖
+                </div>
+                <span class="text-[10px] font-bold text-[#FF5722] uppercase tracking-wider block">Pilar 1</span>
+                <h4 class="font-extrabold text-sm text-[#1E1715]">Racik Resep AI dari Kulkas</h4>
+                <p class="text-[11px] text-[#786C68] leading-relaxed">
+                  Input bahan sisa seadanya, pilih profil bumbu dapur rumah tangga, dan biarkan AI meracik hidangan lezat siap santap hanya dalam 15 menit.
+                </p>
+              </div>
+              <span class="text-xs text-[#FF5722] font-bold cursor-pointer inline-flex items-center gap-1 hover:underline pt-2">
+                Pelajari Racik AI →
+              </span>
+            </div>
+
+            <!-- Pilar 2 -->
+            <div class="bg-white rounded-3xl border border-[#F0E5E1] p-5 shadow-sm space-y-3 hover:border-orange-300 transition-all flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="w-10 h-10 rounded-2xl bg-[#FFF1ED] text-[#FF5722] flex items-center justify-center text-lg font-bold">
+                  🧭
+                </div>
+                <span class="text-[10px] font-bold text-[#FF5722] uppercase tracking-wider block">Pilar 2</span>
+                <h4 class="font-extrabold text-sm text-[#1E1715]">Peta GIS &amp; Radar Kuliner</h4>
+                <p class="text-[11px] text-[#786C68] leading-relaxed">
+                  Cari warung makan autentik, depot lokal Balikpapan, serta toko sayur segar terdekat dengan filter radius real-time dan estimasi jarak tempuh.
+                </p>
+              </div>
+              <span class="text-xs text-[#FF5722] font-bold cursor-pointer inline-flex items-center gap-1 hover:underline pt-2">
+                Eksplorasi Peta →
+              </span>
+            </div>
+
+            <!-- Pilar 3 -->
+            <div class="bg-white rounded-3xl border border-[#F0E5E1] p-5 shadow-sm space-y-3 hover:border-orange-300 transition-all flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="w-10 h-10 rounded-2xl bg-[#E8F5E9] text-emerald-700 flex items-center justify-center text-lg font-bold">
+                  ⚖️
+                </div>
+                <span class="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">Pilar 3</span>
+                <h4 class="font-extrabold text-sm text-[#1E1715]">Dilema Beli vs Masak</h4>
+                <p class="text-[11px] text-[#786C68] leading-relaxed">
+                  Sistem kalkulasi komparatif otomatis: bandingkan biaya bahan masak per porsi lawan harga seporsi di warung terdekat agar dompet tetap aman.
+                </p>
+              </div>
+              <span class="text-xs text-[#FF5722] font-bold cursor-pointer inline-flex items-center gap-1 hover:underline pt-2">
+                Simulasi Anggaran →
+              </span>
+            </div>
+
+            <!-- Pilar 4 -->
+            <div class="bg-white rounded-3xl border border-[#F0E5E1] p-5 shadow-sm space-y-3 hover:border-orange-300 transition-all flex flex-col justify-between">
+              <div class="space-y-3">
+                <div class="w-10 h-10 rounded-2xl bg-[#FFEBE6] text-[#FF5722] flex items-center justify-center text-lg font-bold">
+                  ❤️
+                </div>
+                <span class="text-[10px] font-bold text-[#FF5722] uppercase tracking-wider block">Pilar 4</span>
+                <h4 class="font-extrabold text-sm text-[#1E1715]">Koleksi Rasa &amp; Cooksnap</h4>
+                <p class="text-[11px] text-[#786C68] leading-relaxed">
+                  Simpan resep pusaka keluarga, bagikan foto piring hasil masakanmu ke komunitas, dan kumpulkan lencana koki rumahan Balikpapan.
+                </p>
+              </div>
+              <span class="text-xs text-[#FF5722] font-bold cursor-pointer inline-flex items-center gap-1 hover:underline pt-2">
+                Koleksi Resep →
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- MAIN 2-COLUMN: FAQ (7 COLS) & SUPPORT/FEEDBACK (5 COLS) -->
+        <div class="grid grid-cols-12 gap-8 items-start">
+
+          <!-- LEFT COLUMN: FAQ & KNOWLEDGE ACCORDIONS (7 COLS) -->
+          <div class="col-span-12 lg:col-span-7 space-y-5">
+            <div class="flex items-center justify-between">
+              <div>
+                <h3 class="text-base font-extrabold text-[#1E1715]">Tanya Jawab Populer (FAQ)</h3>
+                <p class="text-xs text-[#786C68]">Jawaban tuntas dan praktis untuk pengalaman dapur tanpa kendala.</p>
+              </div>
+              <span class="text-xs bg-white border border-[#F0E5E1] text-[#786C68] px-2.5 py-1 rounded-full font-semibold shadow-2xs">
+                6 Jawaban Tersedia
+              </span>
+            </div>
+
+            <!-- FAQ Filter Tabs -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+              <button class="px-3.5 py-1.5 bg-[#FF5722] text-white rounded-full text-xs font-bold shadow-xs whitespace-nowrap">
+                Semua Pertanyaan
+              </button>
+              <button class="px-3.5 py-1.5 bg-white hover:bg-orange-50 border border-[#F0E5E1] text-[#786C68] hover:text-[#1E1715] rounded-full text-xs font-semibold whitespace-nowrap transition-colors">
+                Resep &amp; Dapur AI
+              </button>
+              <button class="px-3.5 py-1.5 bg-white hover:bg-orange-50 border border-[#F0E5E1] text-[#786C68] hover:text-[#1E1715] rounded-full text-xs font-semibold whitespace-nowrap transition-colors">
+                Peta GIS Kuliner
+              </button>
+              <button class="px-3.5 py-1.5 bg-white hover:bg-orange-50 border border-[#F0E5E1] text-[#786C68] hover:text-[#1E1715] rounded-full text-xs font-semibold whitespace-nowrap transition-colors">
+                Bahan &amp; Kulkas
+              </button>
+            </div>
+
+            <!-- FAQ Items (Lengkap dengan Kotak & Konten Jawaban Terbuka) -->
+            <div class="space-y-3">
+              <!-- FAQ 1 (Buka) -->
+              <div class="bg-white rounded-2xl border border-[#F0E5E1] p-4 shadow-sm space-y-2">
+                <div class="flex items-center justify-between cursor-pointer">
+                  <h5 class="font-bold text-xs text-[#1E1715] flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-[#FF5722] shrink-0"></span>
+                    <span>Bagaimana cara AI BEMAS menentukan resep jika bahan di kulkas saya sangat sedikit?</span>
+                  </h5>
+                  <span class="text-[#786C68] text-xs font-bold ml-2 shrink-0">▲</span>
+                </div>
+                <p class="text-xs text-[#786C68] leading-relaxed pl-4 border-l-2 border-[#FFEBE6]">
+                  Algoritma BEMAS dirancang khusus untuk memprioritaskan masakan berbasis teknik dasar rumahan (tumis, orak-arik, sup kaldu). Cukup masukkan minimal 2 bahan (misal telur dan kecap), AI akan melengkapi dengan takaran bumbu dasar yang umumnya ada di dapur tanpa memaksakan belanja mahal.
+                </p>
+              </div>
+
+              <!-- FAQ 2 -->
+              <div class="bg-white rounded-2xl border border-[#F0E5E1] p-4 shadow-sm space-y-2">
+                <div class="flex items-center justify-between cursor-pointer">
+                  <h5 class="font-bold text-xs text-[#1E1715] flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                    <span>Apakah data warung kuliner di peta GIS Balikpapan selalu diperbarui?</span>
+                  </h5>
+                  <span class="text-[#786C68] text-xs font-bold ml-2 shrink-0">▼</span>
+                </div>
+                <p class="text-xs text-[#786C68] leading-relaxed pl-4 border-l-2 border-amber-200">
+                  Ya! Data warung makan dan pedagang sayur di BEMAS diverifikasi secara berkala bersama komunitas koki rumahan dan UMKM lokal di area Balikpapan Utara, Tengah, dan sekitarnya.
+                </p>
+              </div>
+
+              <!-- FAQ 3 -->
+              <div class="bg-white rounded-2xl border border-[#F0E5E1] p-4 shadow-sm space-y-2">
+                <div class="flex items-center justify-between cursor-pointer">
+                  <h5 class="font-bold text-xs text-[#1E1715] flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-[#FF5722] shrink-0"></span>
+                    <span>Bagaimana jika saya kurang 1 bumbu saat ingin memasak resep rekomendasi?</span>
+                  </h5>
+                  <span class="text-[#786C68] text-xs font-bold ml-2 shrink-0">▼</span>
+                </div>
+                <p class="text-xs text-[#786C68] leading-relaxed pl-4 border-l-2 border-[#FFEBE6]">
+                  Fitur Radar Bahan BEMAS akan langsung mendeteksi warung kelontong atau toko sayur terdekat (kurang dari 500m) yang menjual bahan yang kurang, lengkap dengan rute petanya.
+                </p>
+              </div>
+
+              <!-- FAQ 4 -->
+              <div class="bg-white rounded-2xl border border-[#F0E5E1] p-4 shadow-sm space-y-2">
+                <div class="flex items-center justify-between cursor-pointer">
+                  <h5 class="font-bold text-xs text-[#1E1715] flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-600 shrink-0"></span>
+                    <span>Bagaimana BEMAS menghitung estimasi penghematan (Masak vs Beli)?</span>
+                  </h5>
+                  <span class="text-[#786C68] text-xs font-bold ml-2 shrink-0">▼</span>
+                </div>
+                <p class="text-xs text-[#786C68] leading-relaxed pl-4 border-l-2 border-emerald-200">
+                  Estimasi dihitung dari rata-rata harga pasar tradisional Balikpapan dibagi takaran gramatur bahan per porsi, lalu dibandingkan dengan rata-rata harga menu matang di depot sekitarmu.
+                </p>
+              </div>
+
+              <!-- FAQ 5 -->
+              <div class="bg-white rounded-2xl border border-[#F0E5E1] p-4 shadow-sm space-y-2">
+                <div class="flex items-center justify-between cursor-pointer">
+                  <h5 class="font-bold text-xs text-[#1E1715] flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-[#FF5722] shrink-0"></span>
+                    <span>Apakah saya bisa mencatat dan menyimpan resep rahasia keluarga sendiri?</span>
+                  </h5>
+                  <span class="text-[#786C68] text-xs font-bold ml-2 shrink-0">▼</span>
+                </div>
+                <p class="text-xs text-[#786C68] leading-relaxed pl-4 border-l-2 border-[#FFEBE6]">
+                  Tentu! Anda bisa membuka tab Favorit lalu klik "+ Catat Resep Sendiri" untuk menyimpan bumbu rahasia keluarga yang aman tersimpan di akun Anda.
+                </p>
+              </div>
+
+              <!-- FAQ 6 -->
+              <div class="bg-white rounded-2xl border border-[#F0E5E1] p-4 shadow-sm space-y-2">
+                <div class="flex items-center justify-between cursor-pointer">
+                  <h5 class="font-bold text-xs text-[#1E1715] flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-amber-500 shrink-0"></span>
+                    <span>Kenapa lokasi saya perlu diizinkan (GPS Balikpapan)?</span>
+                  </h5>
+                  <span class="text-[#786C68] text-xs font-bold ml-2 shrink-0">▼</span>
+                </div>
+                <p class="text-xs text-[#786C68] leading-relaxed pl-4 border-l-2 border-amber-200">
+                  Izin lokasi digunakan khusus agar fitur peta GIS dapat mengukur radius jarak akurat dan merekomendasikan tempat makan terdekat dari rumah Anda secara real-time.
+                </p>
+              </div>
+            </div>
+
+            <!-- Flowchart Visual Banner (Kotak Alur Terbaca Rapi) -->
+            <div class="bg-white rounded-3xl border border-[#F0E5E1] p-5 shadow-sm space-y-3">
+              <h4 class="font-bold text-xs text-[#1E1715] flex items-center gap-2">
+                <span>🔀</span>
+                <span>Alur Logika AI Rekomendasi Resep BEMAS</span>
+              </h4>
+              <p class="text-[11px] text-[#786C68]">
+                Gambaran visual bagaimana algoritma BEMAS memproses bahan hingga menjadi panduan memasak ramah kantong.
+              </p>
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1 text-center">
+                <div class="p-3 rounded-2xl bg-[#FFF8F6] border border-[#F0E5E1]">
+                  <span class="text-[10px] font-bold text-[#FF5722] block mb-0.5">1. Kulkas &amp; Bahan</span>
+                  <span class="text-[9px] text-[#786C68] leading-tight block">Input stok sisa &amp; masa kedaluwarsa</span>
+                </div>
+                <div class="p-3 rounded-2xl bg-[#FFF8F6] border border-[#F0E5E1]">
+                  <span class="text-[10px] font-bold text-[#FF5722] block mb-0.5">2. AI Sensory Core</span>
+                  <span class="text-[9px] text-[#786C68] leading-tight block">Pencocokan rasa &amp; teknik 15 menit</span>
+                </div>
+                <div class="p-3 rounded-2xl bg-[#FFF8F6] border border-[#F0E5E1]">
+                  <span class="text-[10px] font-bold text-[#FF5722] block mb-0.5">3. Audit Biaya Lokal</span>
+                  <span class="text-[9px] text-[#786C68] leading-tight block">Komparasi Pasar vs Warung Balikpapan</span>
+                </div>
+                <div class="p-3 rounded-2xl bg-[#FF5722] text-white shadow-xs">
+                  <span class="text-[10px] font-bold block mb-0.5">4. Pilihan Tepat</span>
+                  <span class="text-[9px] text-white/90 leading-tight block">Masak Mandiri / Beli Jadi</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- RIGHT COLUMN: SUPPORT CHANNELS & COMMUNITY INPUT (5 COLS) -->
+          <div class="col-span-12 lg:col-span-5 space-y-5">
+
+            <!-- DIRECT SUPPORT -->
+            <div class="bg-white rounded-3xl p-5 border border-[#F0E5E1] shadow-sm space-y-3.5">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-[#FFEBE6] text-[#FF5722] flex items-center justify-center font-bold text-lg shrink-0">
+                  🎧
+                </div>
+                <div>
+                  <h4 class="font-extrabold text-sm text-[#1E1715]">Butuh Bantuan Langsung?</h4>
+                  <p class="text-[11px] text-[#786C68]">Tim BEMAS siap mendampingi koki rumahan.</p>
+                </div>
+              </div>
+              <p class="text-xs text-[#786C68] leading-relaxed">
+                Punya pertanyaan spesifik terkait resep, mitra warung, atau kendala teknis? Hubungi kanal resmi kami:
+              </p>
+              <div class="space-y-2">
+                <a href="#" class="flex items-center justify-between p-3 rounded-2xl bg-[#FFF8F6] border border-[#F0E5E1] hover:border-emerald-300 transition-colors">
+                  <div class="flex items-center gap-2.5">
+                    <span class="text-base text-emerald-600 font-bold">💬</span>
+                    <div>
+                      <span class="text-xs font-bold text-[#1E1715] block">WhatsApp Support</span>
+                      <span class="text-[10px] text-[#786C68]">Respon rata-rata ~5 menit</span>
+                    </div>
+                  </div>
+                  <span class="text-xs text-[#786C68]">›</span>
+                </a>
+                <a href="#" class="flex items-center justify-between p-3 rounded-2xl bg-[#FFF8F6] border border-[#F0E5E1] hover:border-orange-300 transition-colors">
+                  <div class="flex items-center gap-2.5">
+                    <span class="text-base text-[#FF5722] font-bold">✉️</span>
+                    <div>
+                      <span class="text-xs font-bold text-[#1E1715] block">Surel Resmi BEMAS</span>
+                      <span class="text-[10px] text-[#786C68]">bantuan@bemas.id</span>
+                    </div>
+                  </div>
+                  <span class="text-xs text-[#786C68]">›</span>
+                </a>
+                <a href="#" class="flex items-center justify-between p-3 rounded-2xl bg-[#FFF8F6] border border-[#F0E5E1] hover:border-red-300 transition-colors">
+                  <div class="flex items-center gap-2.5">
+                    <span class="text-base text-red-500 font-bold">▶️</span>
+                    <div>
+                      <span class="text-xs font-bold text-[#1E1715] block">Video Tutorial (3 Mnt)</span>
+                      <span class="text-[10px] text-[#786C68]">Tonton di kanal YouTube BEMAS</span>
+                    </div>
+                  </div>
+                  <span class="text-xs text-[#786C68]">↗</span>
+                </a>
+              </div>
+            </div>
+
+            <!-- KITCHEN CHEAT SHEET -->
+            <div class="bg-white rounded-3xl p-5 border border-[#F0E5E1] shadow-sm space-y-3">
+              <span class="text-[10px] font-bold text-[#FF5722] uppercase tracking-wider block">📖 Kitchen Cheat Sheet</span>
+              <h4 class="font-extrabold text-sm text-[#1E1715]">3 Golden Rules Memasak Cepat di Rumah</h4>
+              <div class="space-y-2 text-xs">
+                <div class="flex items-start gap-2.5 p-2.5 rounded-xl bg-[#FFF8F6] border border-[#F0E5E1]/60">
+                  <span class="w-5 h-5 rounded-full bg-[#FFEBE6] text-[#FF5722] text-[10px] font-bold flex items-center justify-center shrink-0">1</span>
+                  <div>
+                    <strong class="text-[#1E1715] block text-[11px]">Mise en Place (Potong Dulu)</strong>
+                    <span class="text-[10px] text-[#786C68]">Siapkan seluruh potongan sayur &amp; protein di piring sebelum menyalakan kompor.</span>
+                  </div>
+                </div>
+                <div class="flex items-start gap-2.5 p-2.5 rounded-xl bg-[#FFF8F6] border border-[#F0E5E1]/60">
+                  <span class="w-5 h-5 rounded-full bg-[#FFEBE6] text-[#FF5722] text-[10px] font-bold flex items-center justify-center shrink-0">2</span>
+                  <div>
+                    <strong class="text-[#1E1715] block text-[11px]">Bumbu Dasar Siap Sedia</strong>
+                    <span class="text-[10px] text-[#786C68]">Buat stok bumbu putih (bawang merah/putih/kemiri halus) dalam toples minyak tahan 14 hari.</span>
+                  </div>
+                </div>
+                <div class="flex items-start gap-2.5 p-2.5 rounded-xl bg-[#FFF8F6] border border-[#F0E5E1]/60">
+                  <span class="w-5 h-5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold flex items-center justify-center shrink-0">3</span>
+                  <div>
+                    <strong class="text-[#1E1715] block text-[11px]">Pilih Masak atau Beli Cepat</strong>
+                    <span class="text-[10px] text-[#786C68]">Jika waktu persiapan &gt; 45 menit untuk 1 porsi, gunakan radar BEMAS untuk beli makan jadi.</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- LAPORKAN WARUNG BARU -->
+            <div class="bg-white rounded-3xl p-5 border border-[#F0E5E1] shadow-sm space-y-3">
+              <span class="text-[10px] font-bold text-[#FF5722] uppercase tracking-wider block">📍 Kontribusi Komunitas</span>
+              <h4 class="font-extrabold text-sm text-[#1E1715]">Laporkan Warung / Masukan</h4>
+              <p class="text-[11px] text-[#786C68]">Punya warung langganan di Balikpapan yang belum muncul di GIS? Beritahu kami agar bisa terdata!</p>
+              <div class="space-y-2">
+                <select class="w-full bg-[#FFF8F6] border border-[#F0E5E1] rounded-xl px-3 py-2 text-xs text-[#1E1715] focus:outline-none focus:border-[#FF5722]">
+                  <option>Tambah Warung / Depot Baru</option>
+                  <option>Koreksi Titik Lokasi Peta</option>
+                  <option>Saran Fitur Racik AI</option>
+                </select>
+                <input 
+                  type="text" 
+                  placeholder="Nama Tempat / Catatan..." 
+                  class="w-full bg-[#FFF8F6] border border-[#F0E5E1] rounded-xl px-3 py-2 text-xs text-[#1E1715] focus:outline-none focus:border-[#FF5722] font-medium"
+                >
+                <textarea 
+                  placeholder="Sebutkan menu andalan atau patokan lokasi..." 
+                  rows="2" 
+                  class="w-full bg-[#FFF8F6] border border-[#F0E5E1] rounded-xl px-3 py-2 text-xs text-[#1E1715] focus:outline-none focus:border-[#FF5722] font-medium"
+                ></textarea>
+                <button class="w-full py-2.5 bg-[#FF5722] hover:bg-[#E64A19] text-white rounded-xl text-xs font-bold transition-colors">
+                  Kirimkan ke Tim BEMAS
+                </button>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </main>
+
+    </div>
+
+  </div>
+
+</body>
+</html>
