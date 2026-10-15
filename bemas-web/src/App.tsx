@@ -6,7 +6,8 @@ import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { RecipeSection } from './components/RecipeSection';
 import { MapSection } from './components/MapSection';
-import { FavoritesSection } from './components/FavoritesSection';
+import { FavoritesPage } from './pages/FavoritesPage';
+
 import { HelpSection } from './components/HelpSection';
 import { AdminPanel } from './components/AdminPanel';
 import { ApiKeyModal } from './components/ApiKeyModal';
@@ -120,11 +121,12 @@ export function App() {
             )}
 
             {activeTab === 'favorites' && (
-              <FavoritesSection
+              <FavoritesPage
                 onGoToRecipe={() => setActiveTab('recipe')}
                 onGoToMap={() => setActiveTab('map')}
               />
             )}
+
 
             {activeTab === 'help' && (
               <HelpSection
