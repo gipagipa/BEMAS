@@ -47,7 +47,24 @@ export interface Recipe {
   caloriesApprox?: number;
   steps: string[];
   tips?: string;
-  source: 'AI-Generated' | 'Curated';
+  source: 'AI-Generated' | 'Curated' | 'AI-Vision';
+  rating?: number;
+  reviewsCount?: number;
+}
+
+export interface IngredientShelfLife {
+  name: string;
+  shelfLife: string;
+  freshnessStatus: 'Segar' | 'Perlu Cepat Diolah' | 'Tahan Lama';
+  storageTip: string;
+  estimatedDaysLeft: number;
+}
+
+export interface PhotoAnalysisResult {
+  detectedIngredients: string[];
+  shelfLifeList: IngredientShelfLife[];
+  urgentCookAdvice?: string;
+  recipes: Recipe[];
 }
 
 export interface UserReport {
