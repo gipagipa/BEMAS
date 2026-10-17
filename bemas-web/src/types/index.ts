@@ -9,6 +9,19 @@ export interface User {
   createdAt: string;
 }
 
+export interface StoredUser extends User {
+  passwordHash: string;
+}
+
+export interface AuthResult {
+  success: boolean;
+  user?: User;
+  token?: string;
+  error?: string;
+  remainingAttempts?: number;
+  lockedUntil?: number;
+}
+
 export interface MenuItem {
   id: string;
   name: string;
@@ -35,6 +48,13 @@ export interface CulinaryPlace {
   isVerified?: boolean;
 }
 
+export type RecipeCategoryTag =
+  | 'Semua Resep'
+  | '⚡ Menu Cepat (< 20 Mnt)'
+  | '🏠 Masakan Rumahan'
+  | '💰 Hemat / Tanggal Tua'
+  | '🥗 Sehat & Sayur';
+
 export interface Recipe {
   id: string;
   title: string;
@@ -47,36 +67,11 @@ export interface Recipe {
   caloriesApprox?: number;
   steps: string[];
   tips?: string;
-  source: 'AI-Generated' | 'Curated' | 'AI-Vision';
+  source: 'AI-Generated' | 'Curated';
   rating?: number;
   reviewsCount?: number;
+  categoryTags?: RecipeCategoryTag[];
+  imageUrl?: string;
+  engineName?: string;
 }
 
-export interface IngredientShelfLife {
-  name: string;
-  shelfLife: string;
-  freshnessStatus: 'Segar' | 'Perlu Cepat Diolah' | 'Tahan Lama';
-  storageTip: string;
-  estimatedDaysLeft: number;
-}
-
-export interface PhotoAnalysisResult {
-  detectedIngredients: string[];
-  shelfLifeList: IngredientShelfLife[];
-  urgentCookAdvice?: string;
-  recipes: Recipe[];
-}
-
-export interface UserReport {
-  id: string;
-  userId: string;
-  userName: string;
-  userEmail: string;
-  category: 'Bug Teknis' | 'Data Kuliner Salah' | 'Saran Resep AI' | 'Lainnya';
-  title: string;
-  description: string;
-  status: 'Pending' | 'Selesai';
-  adminReply?: string;
-  createdAt: string;
-  repliedAt?: string;
-}

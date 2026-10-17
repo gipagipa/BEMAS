@@ -1,65 +1,85 @@
 import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
-import { 
-  MapPin, 
-  Navigation, 
-  Search, 
-  Star, 
-  Clock, 
-  Bookmark, 
-  BookmarkCheck, 
-  ExternalLink, 
-  CheckCircle2, 
-  Utensils,
-  Share2
+import {
+  MapPin,
+  Navigation,
+  Search,
+  Star,
+  Clock,
+  ExternalLink,
+  CheckCircle2,
+  Utensils
 } from 'lucide-react';
 import { CulinaryPlace } from '../types';
-import { storage } from '../services/storage';
+import {
+  storage,
+  calculateDistance,
+  filterPlaces,
+  isValidCoordinate
+} from '../services/storage';
 
 interface MapSectionProps {
   onGoToRecipe: () => void;
+  externalSearchQuery?: string;
 }
 
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371; // Earth's radius in km
-  const dLat = (lat2 - lat1) * (Math.PI / 180);
-  const dLon = (lon2 - lon1) * (Math.PI / 180);
-  const a =
-    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return Math.round(R * c * 10) / 10;
-}
+export const DEFAULT_BALIKPAPAN_COORDS = {
+  lat: -1.1519,
+  lng: 116.8617
+};
 
-export const MapSection: React.FC<MapSectionProps> = ({ onGoToRecipe }) => {
+export const MapSection: React.FC<MapSectionProps> = ({
+  onGoToRecipe,
+  externalSearchQuery = ''
+}) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markersRef = useRef<L.Marker[]>([]);
-  
-  // Balikpapan default center coordinates: -1.1519, 116.8617 (ITK Area)
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number }>({
-    lat: -1.1519,
-    lng: 116.8617
-  });
-  const [places, setPlaces] = useState<CulinaryPlace[]>(storage.getPlaces());
+
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number }>(
+    DEFAULT_BALIKPAPAN_COORDS
+  );
+  const [places] = useState<CulinaryPlace[]>(() => storage.getPlaces());
   const [selectedPlace, setSelectedPlace] = useState<CulinaryPlace | null>(null);
-  const [favoritePlaceIds, setFavoritePlaceIds] = useState<string[]>(storage.getFavoritePlaceIds());
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(externalSearchQuery);
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Sinkronisasi pencarian dari Header global jika berubah
+  useEffect(() => {
+    if (externalSearchQuery !== undefined) {
+      setSearchQuery(externalSearchQuery);
+    }
+  }, [externalSearchQuery]);
+
+  const filteredPlaces = filterPlaces(places, searchQuery, selectedCategory);
+
+  // Pastikan selectedPlace tidak bocor (stale) jika tidak lagi cocok dengan hasil filter
+  useEffect(() => {
+    if (selectedPlace && !filteredPlaces.some(p => p.id === selectedPlace.id)) {
+      setSelectedPlace(null);
+    }
+  }, [filteredPlaces, selectedPlace]);
 
   useEffect(() => {
     if (!mapContainerRef.current) return;
 
-    if (!mapInstanceRef.current) {
-      const map = L.map(mapContainerRef.current).setView([userLocation.lat, userLocation.lng], 13);
-      
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-      }).addTo(map);
+    try {
+      if (!mapInstanceRef.current) {
+        const map = L.map(mapContainerRef.current).setView(
+          [userLocation.lat, userLocation.lng],
+          13
+        );
 
-      mapInstanceRef.current = map;
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution:
+            '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }).addTo(map);
+
+        mapInstanceRef.current = map;
+      }
+    } catch {
+      // Aman pada lingkungan pengujian DOM tanpa canvas penuh
     }
 
     return () => {
@@ -74,140 +94,155 @@ export const MapSection: React.FC<MapSectionProps> = ({ onGoToRecipe }) => {
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    markersRef.current.forEach(m => m.remove());
-    markersRef.current = [];
+    try {
+      markersRef.current.forEach(m => m.remove());
+      markersRef.current = [];
 
-    // User GPS pulsing pin
-    const userIcon = L.divIcon({
-      html: `
-        <div class="relative flex items-center justify-center w-8 h-8">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-5 w-5 bg-blue-600 border-2 border-white shadow-md"></span>
-        </div>
-      `,
-      className: 'user-gps-marker',
-      iconSize: [32, 32],
-      iconAnchor: [16, 16]
-    });
-
-    const userMarker = L.marker([userLocation.lat, userLocation.lng], { icon: userIcon })
-      .addTo(map)
-      .bindPopup('<b>Lokasi Anda</b><br/>Posisi Anda saat ini (Balikpapan).');
-    markersRef.current.push(userMarker);
-
-    // Filtered culinary places pins
-    const filtered = getFilteredPlaces();
-    filtered.forEach(place => {
-      const placeIcon = L.divIcon({
+      const userIcon = L.divIcon({
         html: `
-          <div class="flex items-center justify-center w-9 h-9 rounded-full bg-[#FF5722] text-white shadow-lg border-2 border-white hover:scale-110 transition-transform cursor-pointer">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+          <div class="relative flex items-center justify-center w-8 h-8">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-5 w-5 bg-blue-600 border-2 border-white shadow-md"></span>
           </div>
         `,
-        className: 'custom-culinary-pin',
-        iconSize: [36, 36],
-        iconAnchor: [18, 36]
+        className: 'user-gps-marker',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16]
       });
 
-      const dist = calculateDistance(userLocation.lat, userLocation.lng, place.lat, place.lng);
-
-      const marker = L.marker([place.lat, place.lng], { icon: placeIcon })
+      const userMarker = L.marker([userLocation.lat, userLocation.lng], {
+        icon: userIcon
+      })
         .addTo(map)
-        .bindPopup(`
-          <div style="font-family: inherit; font-size: 13px; max-width: 230px;">
-            <b style="font-size: 14px; color: #1E1715;">${place.name}</b>
-            <div style="color: #FF5722; font-size: 12px; margin-top: 2px;">★ ${place.rating} (${place.reviewsCount} ulasan) • ${dist} km</div>
-            <div style="color: #786C68; font-size: 11px; margin-top: 4px;">${place.address}</div>
-            <div style="margin-top: 6px; font-weight: 600; color: #FF5722;">Menu: ${place.featuredMenu}</div>
-          </div>
-        `);
+        .bindPopup('<b>Lokasi Anda</b><br/>Posisi Anda saat ini (Balikpapan).');
+      markersRef.current.push(userMarker);
 
-      marker.on('click', () => {
-        setSelectedPlace(place);
+      filteredPlaces.forEach(place => {
+        if (!isValidCoordinate(place.lat, place.lng)) return;
+
+        const placeIcon = L.divIcon({
+          html: `
+            <div class="flex items-center justify-center w-9 h-9 rounded-full bg-[#FF5722] text-white shadow-lg border-2 border-white hover:scale-110 transition-transform cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+            </div>
+          `,
+          className: 'custom-culinary-pin',
+          iconSize: [36, 36],
+          iconAnchor: [18, 36]
+        });
+
+        const dist = calculateDistance(
+          userLocation.lat,
+          userLocation.lng,
+          place.lat,
+          place.lng
+        );
+
+        const marker = L.marker([place.lat, place.lng], { icon: placeIcon })
+          .addTo(map)
+          .bindPopup(`
+            <div style="font-family: inherit; font-size: 13px; max-width: 230px;">
+              <b style="font-size: 14px; color: #1E1715;">${place.name}</b>
+              <div style="color: #FF5722; font-size: 12px; margin-top: 2px;">★ ${place.rating} (${place.reviewsCount} ulasan) • ${dist} km</div>
+              <div style="color: #786C68; font-size: 11px; margin-top: 4px;">${place.address}</div>
+              <div style="margin-top: 6px; font-weight: 600; color: #FF5722;">Menu: ${place.featuredMenu}</div>
+            </div>
+          `);
+
+        marker.on('click', () => {
+          setSelectedPlace(place);
+        });
+
+        markersRef.current.push(marker);
       });
+    } catch {
+      // Aman pada lingkungan pengujian DOM
+    }
+  }, [userLocation, filteredPlaces]);
 
-      markersRef.current.push(marker);
-    });
-  }, [userLocation, places, searchQuery, selectedCategory]);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
 
+  /**
+   * UC-04 Langkah 2, 3, & Exceptional Flow 3a (Izin Lokasi Ditolak / Tidak Didukung)
+   */
   const requestGpsLocation = () => {
-    if (navigator.geolocation) {
-      showToast('Mencari koordinat GPS perangkat Anda...');
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      showToast('Meminta izin akses lokasi perangkat (GPS)...');
       navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          const newPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          setUserLocation(newPos);
-          if (mapInstanceRef.current) {
-            mapInstanceRef.current.flyTo([newPos.lat, newPos.lng], 14, { duration: 1.5 });
+        pos => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          if (isValidCoordinate(lat, lng)) {
+            const newPos = { lat, lng };
+            setUserLocation(newPos);
+            if (mapInstanceRef.current) {
+              mapInstanceRef.current.flyTo([newPos.lat, newPos.lng], 14, {
+                duration: 1.5
+              });
+            }
+            showToast('Lokasi GPS berhasil diperbarui!');
+          } else {
+            setUserLocation(DEFAULT_BALIKPAPAN_COORDS);
+            showToast('Koordinat GPS tidak valid, menggunakan lokasi standar Balikpapan.');
           }
-          showToast('Lokasi GPS berhasil diperbarui!');
         },
         () => {
-          showToast('GPS tidak diizinkan, menggunakan titik default Balikpapan (ITK).');
+          // Exceptional Flow 3a: Izin Lokasi Ditolak
+          setUserLocation(DEFAULT_BALIKPAPAN_COORDS);
+          showToast(
+            'Izin lokasi GPS ditolak, menggunakan lokasi standar kota Balikpapan (ITK).'
+          );
         }
       );
     } else {
-      alert('Browser tidak mendukung GPS geolokasi.');
+      setUserLocation(DEFAULT_BALIKPAPAN_COORDS);
+      showToast(
+        'Peramban tidak mendukung geolokasi GPS, menggunakan lokasi standar kota Balikpapan.'
+      );
     }
-  };
-
-  const handleToggleFavoritePlace = (place: CulinaryPlace) => {
-    const isAdded = storage.toggleFavoritePlace(place.id);
-    setFavoritePlaceIds(storage.getFavoritePlaceIds());
-    if (isAdded) {
-      showToast(`Tempat "${place.name}" berhasil disimpan ke Favorit!`);
-    } else {
-      showToast(`Tempat "${place.name}" dihapus dari Favorit.`);
-    }
-  };
-
-  const getFilteredPlaces = () => {
-    return places.filter(place => {
-      const matchQuery = place.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        place.address.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        place.featuredMenu.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchCat = selectedCategory === 'Semua' || place.category === selectedCategory;
-      return matchQuery && matchCat;
-    });
   };
 
   const focusOnPlace = (place: CulinaryPlace) => {
     setSelectedPlace(place);
-    if (mapInstanceRef.current) {
-      mapInstanceRef.current.flyTo([place.lat, place.lng], 15, { duration: 1.2 });
+    if (mapInstanceRef.current && isValidCoordinate(place.lat, place.lng)) {
+      try {
+        mapInstanceRef.current.flyTo([place.lat, place.lng], 15, { duration: 1.2 });
+      } catch {
+        // Ignore on headless test
+      }
     }
   };
 
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3000);
-  };
-
   const categories = [
-    'Semua', 
-    'Warung Makan', 
-    'Cafe', 
-    'Restoran', 
-    'Bakso & Mie', 
+    'Semua',
+    'Warung Makan',
+    'Cafe',
+    'Restoran',
+    'Bakso & Mie',
     'Street Food'
   ];
-  const filteredPlaces = getFilteredPlaces();
 
   return (
     <div className="space-y-6 pb-16">
       {/* Toast Alert */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#1E1715] text-white text-xs px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 animate-bounce">
+        <div
+          role="status"
+          className="fixed bottom-6 right-6 z-50 bg-[#1E1715] text-white text-xs px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5"
+        >
           <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
           <span className="font-medium">{toastMessage}</span>
         </div>
       )}
 
-      {/* Breadcrumbs (Figma Exact) */}
+      {/* Breadcrumbs */}
       <div className="flex items-center gap-2 text-xs text-[#786C68] font-medium">
         <span>Beranda</span>
         <span className="text-[10px] text-[#786C68]">›</span>
-        <span className="text-[#FF5722] font-semibold">Kuliner (Peta GIS)</span>
+        <span className="text-[#FF5722] font-semibold">Mencari Lokasi Kuliner (UC-04)</span>
       </div>
 
       {/* Header Bar */}
@@ -215,26 +250,28 @@ export const MapSection: React.FC<MapSectionProps> = ({ onGoToRecipe }) => {
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#FFEBE6] text-[#FF5722] text-xs font-bold mb-2">
             <MapPin className="w-3.5 h-3.5" />
-            <span>Peta Interaktif GIS (UC-04)</span>
+            <span>Peta Interaktif GIS (FR-04 / UC-04)</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#1E1715]">
             Eksplorasi Tempat Kuliner Sekitarmu
           </h2>
           <p className="text-xs sm:text-sm text-[#786C68] mt-1">
-            Temukan tempat makan di sekitar Balikpapan dan kampus ITK dengan navigasi rute otomatis.
+            Temukan tempat makan di sekitar Balikpapan dan kampus ITK dengan pemetaan GIS dan navigasi rute.
           </p>
         </div>
 
         <div className="flex items-center gap-2.5">
           <button
+            type="button"
             onClick={requestGpsLocation}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-[#FF5722] hover:bg-[#E64A19] text-white text-xs font-bold transition shadow-xs"
           >
             <Navigation className="w-4 h-4" />
             <span>Gunakan GPS Saya</span>
           </button>
-          
+
           <button
+            type="button"
             onClick={onGoToRecipe}
             className="flex items-center gap-1.5 px-4 py-2.5 rounded-2xl bg-[#FFF1ED] hover:bg-[#FFE0D6] border border-[#FFD8CF] text-[#FF5722] text-xs font-bold transition"
           >
@@ -244,14 +281,15 @@ export const MapSection: React.FC<MapSectionProps> = ({ onGoToRecipe }) => {
         </div>
       </div>
 
-      {/* Search & Category Filter Chips */}
+      {/* Search & Category Filter Chips (UC-04 Langkah 4a) */}
       <div className="flex flex-col sm:flex-row items-center gap-3">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-[#786C68] absolute left-3.5 top-3" />
           <input
             type="text"
+            aria-label="Cari lokasi atau menu kuliner"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
             placeholder="Cari soto, kepiting, bakso, cafe..."
             className="w-full pl-9 pr-4 py-2 rounded-2xl border border-[#F0E5E1] text-xs bg-white focus:outline-hidden focus:border-[#FF5722]"
           />
@@ -261,6 +299,7 @@ export const MapSection: React.FC<MapSectionProps> = ({ onGoToRecipe }) => {
           {categories.map(cat => (
             <button
               key={cat}
+              type="button"
               onClick={() => setSelectedCategory(cat)}
               className={`text-xs px-4 py-2 rounded-full font-bold whitespace-nowrap transition-colors ${
                 selectedCategory === cat
@@ -289,20 +328,24 @@ export const MapSection: React.FC<MapSectionProps> = ({ onGoToRecipe }) => {
           </div>
 
           <div className="flex-1 w-full rounded-2xl overflow-hidden relative">
-            <div ref={mapContainerRef} className="w-full h-full" />
+            <div ref={mapContainerRef} data-testid="gis-map-container" className="w-full h-full" />
           </div>
         </div>
 
         {/* Places List (5 Cols) */}
         <div className="lg:col-span-5 space-y-4 max-h-[540px] overflow-y-auto pr-1 no-scrollbar">
-          {/* Selected Place Card Highlight */}
+          {/* Selected Place Card Highlight (UC-04 Langkah 6) */}
           {selectedPlace && (
-            <div className="bg-[#FFF4F0] border border-[#FFD8CF] rounded-3xl p-5 shadow-2xs">
+            <div
+              data-testid="selected-place-detail"
+              className="bg-[#FFF4F0] border border-[#FFD8CF] rounded-3xl p-5 shadow-2xs"
+            >
               <div className="flex items-start justify-between gap-2 mb-2">
                 <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-[#FFEBE6] text-[#FF5722]">
-                  Lokasi Terpilih
+                  Detail Tempat Kuliner
                 </span>
                 <button
+                  type="button"
                   onClick={() => setSelectedPlace(null)}
                   className="text-xs text-[#786C68] hover:text-[#FF5722] font-bold"
                 >
@@ -312,7 +355,7 @@ export const MapSection: React.FC<MapSectionProps> = ({ onGoToRecipe }) => {
 
               <h3 className="font-extrabold text-[#1E1715] text-base">{selectedPlace.name}</h3>
               <p className="text-xs text-[#786C68] mt-1">{selectedPlace.address}</p>
-              
+
               <div className="mt-3 p-3 rounded-2xl bg-white border border-[#FFD8CF] text-xs">
                 <p className="font-bold text-[#FF5722] mb-0.5">Menu Unggulan Rekomendasi:</p>
                 <p className="text-[#1E1715] font-medium">{selectedPlace.featuredMenu}</p>
@@ -336,20 +379,38 @@ export const MapSection: React.FC<MapSectionProps> = ({ onGoToRecipe }) => {
 
           {/* Place Cards */}
           {filteredPlaces.length === 0 ? (
-            <div className="bg-white rounded-3xl p-8 text-center text-[#786C68] border border-[#F0E5E1]">
-              Tidak ada kuliner yang cocok dengan kata kunci "{searchQuery}".
+            <div className="bg-white rounded-3xl p-8 text-center text-[#786C68] border border-[#F0E5E1] space-y-3">
+              <p className="text-xs font-medium">
+                Tidak ada kuliner yang cocok dengan kata kunci "{searchQuery}".
+              </p>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('Semua');
+                }}
+                className="px-4 py-2 rounded-xl bg-[#FF5722] text-white text-xs font-bold"
+              >
+                Reset Pencarian
+              </button>
             </div>
           ) : (
             filteredPlaces.map(place => {
-              const isFav = favoritePlaceIds.includes(place.id);
-              const dist = calculateDistance(userLocation.lat, userLocation.lng, place.lat, place.lng);
+              const dist = calculateDistance(
+                userLocation.lat,
+                userLocation.lng,
+                place.lat,
+                place.lng
+              );
 
               return (
                 <div
                   key={place.id}
                   onClick={() => focusOnPlace(place)}
                   className={`bg-white rounded-3xl p-4 border transition-all cursor-pointer hover:border-[#FF5722] shadow-2xs ${
-                    selectedPlace?.id === place.id ? 'border-[#FF5722] ring-2 ring-orange-200' : 'border-[#F0E5E1]'
+                    selectedPlace?.id === place.id
+                      ? 'border-[#FF5722] ring-2 ring-orange-200'
+                      : 'border-[#F0E5E1]'
                   }`}
                 >
                   <div className="flex gap-3.5">
@@ -364,18 +425,6 @@ export const MapSection: React.FC<MapSectionProps> = ({ onGoToRecipe }) => {
                         <span className="text-[10px] font-bold text-[#FF5722] bg-[#FFEBE6] px-2.5 py-0.5 rounded-full">
                           {place.category}
                         </span>
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleToggleFavoritePlace(place);
-                          }}
-                          className={`p-1 rounded-md transition ${
-                            isFav ? 'text-red-500' : 'text-slate-300 hover:text-red-500'
-                          }`}
-                        >
-                          {isFav ? <BookmarkCheck className="w-4 h-4 fill-current" /> : <Bookmark className="w-4 h-4" />}
-                        </button>
                       </div>
 
                       <h4 className="font-bold text-[#1E1715] text-sm truncate mt-1">
