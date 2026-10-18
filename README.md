@@ -1,4 +1,4 @@
-# BEMAS (Beli atau Masak) 🍳📍
+# BEMAS (Beli atau Masak)
 
 > **Sistem Informasi Rekomendasi Olahan Makanan dan Lokasi Kuliner Berbasis AI & GIS**  
 > Tugas Besar Mata Kuliah **Implementasi Perancangan Perangkat Lunak (IPPL)**  
