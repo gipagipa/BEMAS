@@ -82,11 +82,31 @@ $$\text{Progress Fitur} = \frac{4\text{ Fitur Esensial}}{11\text{ Total Use Case
    ```bash
    npm run lint
    ```
-5. **Jalankan development server:**
+5. **Jalankan development server lokal:**
    ```bash
    npm run dev
    ```
 6. Buka peramban (browser) di: `http://localhost:5173`
+
+---
+
+### 🐳 Menjalankan Menggunakan Docker (Production Ready)
+
+Aplikasi BEMAS telah dilengkapi konfigurasi **Multi-Stage Build Docker** dan web server **Nginx** dengan kompresi gzip serta routing SPA:
+
+```bash
+# 1. Bangun citra (image) dan jalankan kontainer di latar belakang
+docker compose up -d --build
+
+# 2. Buka peramban di:
+http://localhost:3000
+
+# 3. Untuk melihat log kontainer:
+docker compose logs -f
+
+# 4. Untuk menghentikan kontainer:
+docker compose down
+```
 
 ---
 
@@ -95,15 +115,18 @@ $$\text{Progress Fitur} = \frac{4\text{ Fitur Esensial}}{11\text{ Total Use Case
 ```
 ippl/
 ├── Diagram/               # Diagram Perancangan (Use Case, Activity, Sequence, DFD)
-├── sdd srs/               # Dokumen Formal SRS & SDD (PDF)
+├── sdd srs/               # Dokumen Formal SRS & SDD (PDF & Markdown)
 ├── bemas-web/             # Source Code Prototype Aplikasi Web BEMAS
 │   ├── src/
-│   │   ├── components/    # Komponen Navbar, RecipeSection, MapSection, AdminPanel, dsb.
+│   │   ├── components/    # Komponen RecipeSection, MapSection, Header, Sidebar, dsb.
 │   │   ├── data/          # Seed data kuliner Balikpapan & sekitarnya
 │   │   ├── services/      # Service Gemini AI & Local Storage
+│   │   ├── test/          # 4 Suite Pengujian Otomatis (33 Tests Vitest)
 │   │   ├── types/         # TypeScript Domain Models
-│   │   ├── App.tsx        # Main application router & state
-│   │   └── index.css      # Styling Tailwind & Leaflet
+│   │   └── App.tsx        # Main application router & state
+│   ├── Dockerfile         # Multi-stage Docker build (Node.js 20 + Nginx Alpine)
+│   ├── nginx.conf         # Konfigurasi Nginx (SPA routing fallback & gzip)
 │   └── package.json
+├── docker-compose.yml     # Konfigurasi Orkestrasi Docker Compose (Port 3000:80)
 └── README.md
 ```
