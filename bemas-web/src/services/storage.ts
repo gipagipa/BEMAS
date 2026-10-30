@@ -1,4 +1,4 @@
-import { AuthResult, CulinaryPlace, StoredUser, User } from '../types';
+import { AuthResult, CulinaryPlace, StoredUser, User, Recipe, FavoriteRecipe, FavoritePlace } from '../types';
 import { INITIAL_PLACES } from '../data/initialPlaces';
 
 export const STORAGE_KEYS = {
@@ -8,7 +8,9 @@ export const STORAGE_KEYS = {
   LOGIN_ATTEMPTS: 'bemas_login_attempts',
   PLACES: 'bemas_places',
   RECIPE_CACHE: 'bemas_recipe_cache',
-  GEMINI_API_KEY: 'bemas_gemini_api_key'
+  GEMINI_API_KEY: 'bemas_gemini_api_key',
+  FAVORITE_RECIPES: 'bemas_favorite_recipes',
+  FAVORITE_PLACES: 'bemas_favorite_places'
 } as const;
 
 export const MAX_LOGIN_ATTEMPTS = 5;
@@ -22,15 +24,61 @@ interface LoginAttemptRecord {
 }
 
 /**
+ * Escape string HTML untuk mencegah injeksi script / DOM XSS (SRS NFR-03 & Security Best Practices)
+ */
+export function escapeHtml(str: string): string {
+  if (typeof str !== 'string') return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+/**
+ * Penyimpanan localStorage dengan proteksi QuotaExceededError dan pembersihan cache otomatis
+ */
+export function safeSetItem(key: string, value: string): boolean {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (e) {
+    if (e instanceof DOMException && (e.name === 'QuotaExceededError' || e.code === 22)) {
+      try {
+        // Hapus cache resep non-esensial untuk membebaskan ruang bagi data krusial
+        localStorage.removeItem(STORAGE_KEYS.RECIPE_CACHE);
+        localStorage.setItem(key, value);
+        return true;
+      } catch {
+        console.warn('Storage quota completely exhausted');
+        return false;
+      }
+    }
+    return false;
+  }
+}
+
+/**
  * Sanitasi teks input untuk mencegah injeksi HTML / XSS (SRS UC-01 & UC-07)
  */
 export function sanitizeText(input: string): string {
   if (typeof input !== 'string') return '';
-  return input
-    .replace(/<[^>]*>?/gm, '')
-    .replace(/[\u0000-\u001F\u007F]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
+  let clean = input
+    .replace(/[\u200B-\u200D\uFEFF]/g, '') // Zero-Width characters
+    .replace(/[\u0000-\u001F\u007F]/g, '');
+
+  // Hilangkan tag HTML rekursif untuk mencegah nested tag bypass (mis: <<SCRIPT>alert(1);//<</SCRIPT>)
+  let previous: string;
+  do {
+    previous = clean;
+    clean = clean.replace(/<[^>]*>?/gm, '');
+  } while (clean !== previous);
+
+  // Netralkan skema URI berbahaya
+  clean = clean.replace(/javascript\s*:/gi, '').replace(/data\s*:/gi, '').replace(/vbscript\s*:/gi, '');
+
+  return clean.replace(/\s+/g, ' ').trim();
 }
 
 /**
@@ -151,37 +199,47 @@ export function verifyJwtToken(token: string): {
 
 /**
  * Validasi koordinat geografis (Latitude & Longitude)
+ * Mendukung parsing angka dan string numerik secara aman
  */
-export function isValidCoordinate(lat: number, lng: number): boolean {
+export function isValidCoordinate(lat: unknown, lng: unknown): boolean {
+  if (lat === null || lng === null || lat === undefined || lng === undefined) {
+    return false;
+  }
+  const numLat = typeof lat === 'string' ? Number(lat.trim()) : Number(lat);
+  const numLng = typeof lng === 'string' ? Number(lng.trim()) : Number(lng);
+
   return (
-    typeof lat === 'number' &&
-    typeof lng === 'number' &&
-    Number.isFinite(lat) &&
-    Number.isFinite(lng) &&
-    lat >= -90 &&
-    lat <= 90 &&
-    lng >= -180 &&
-    lng <= 180
+    Number.isFinite(numLat) &&
+    Number.isFinite(numLng) &&
+    numLat >= -90 &&
+    numLat <= 90 &&
+    numLng >= -180 &&
+    numLng <= 180
   );
 }
 
 /**
  * Perhitungan jarak spasial Haversine dalam kilometer (SRS UC-04)
  */
-export function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+export function calculateDistance(lat1: unknown, lon1: unknown, lat2: unknown, lon2: unknown): number {
   if (!isValidCoordinate(lat1, lon1) || !isValidCoordinate(lat2, lon2)) {
     return 0;
   }
-  if (lat1 === lat2 && lon1 === lon2) {
+  const nLat1 = Number(lat1);
+  const nLon1 = Number(lon1);
+  const nLat2 = Number(lat2);
+  const nLon2 = Number(lon2);
+
+  if (nLat1 === nLat2 && nLon1 === nLon2) {
     return 0;
   }
   const R = 6371; // Radius bumi dalam km
-  const dLat = (lat2 - lat1) * (Math.PI / 180);
-  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const dLat = (nLat2 - nLat1) * (Math.PI / 180);
+  const dLon = (nLon2 - nLon1) * (Math.PI / 180);
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * (Math.PI / 180)) *
-      Math.cos(lat2 * (Math.PI / 180)) *
+    Math.cos(nLat1 * (Math.PI / 180)) *
+      Math.cos(nLat2 * (Math.PI / 180)) *
       Math.sin(dLon / 2) *
       Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
@@ -303,6 +361,13 @@ export const storage = {
       };
     }
 
+    if (cleanName.length > 70) {
+      return {
+        success: false,
+        error: 'Nama lengkap terlalu panjang (maksimal 70 karakter)'
+      };
+    }
+
     if (!cleanEmail || !isValidEmail(cleanEmail)) {
       return {
         success: false,
@@ -314,6 +379,13 @@ export const storage = {
       return {
         success: false,
         error: 'Kata sandi terlalu pendek (minimal 8 karakter)'
+      };
+    }
+
+    if (rawPassword.length > 128) {
+      return {
+        success: false,
+        error: 'Kata sandi terlalu panjang (maksimal 128 karakter)'
       };
     }
 
@@ -344,7 +416,7 @@ export const storage = {
     };
 
     users.push(newStoredUser);
-    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    safeSetItem(STORAGE_KEYS.USERS, JSON.stringify(users));
 
     return {
       success: true,
@@ -354,11 +426,20 @@ export const storage = {
 
   getLoginAttemptRecord(email: string): LoginAttemptRecord {
     const key = (email || '').trim().toLowerCase();
+    if (!key || key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      return { count: 0, lastAttemptAt: 0 };
+    }
     const raw = localStorage.getItem(STORAGE_KEYS.LOGIN_ATTEMPTS);
     if (!raw) return { count: 0, lastAttemptAt: 0 };
     try {
-      const map = JSON.parse(raw) as Record<string, LoginAttemptRecord>;
-      return map[key] || { count: 0, lastAttemptAt: 0 };
+      const map = JSON.parse(raw);
+      if (map && typeof map === 'object' && Object.prototype.hasOwnProperty.call(map, key)) {
+        const val = map[key];
+        if (val && typeof val === 'object' && typeof val.count === 'number') {
+          return val;
+        }
+      }
+      return { count: 0, lastAttemptAt: 0 };
     } catch {
       return { count: 0, lastAttemptAt: 0 };
     }
@@ -366,13 +447,23 @@ export const storage = {
 
   saveLoginAttemptRecord(email: string, record: LoginAttemptRecord | null): void {
     const key = (email || '').trim().toLowerCase();
+    if (!key || key === '__proto__' || key === 'constructor' || key === 'prototype') {
+      return;
+    }
     const raw = localStorage.getItem(STORAGE_KEYS.LOGIN_ATTEMPTS);
-    let map: Record<string, LoginAttemptRecord> = {};
+    const map = Object.create(null);
     if (raw) {
       try {
-        map = JSON.parse(raw) || {};
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === 'object') {
+          for (const k of Object.keys(parsed)) {
+            if (k !== '__proto__' && k !== 'constructor' && k !== 'prototype') {
+              map[k] = parsed[k];
+            }
+          }
+        }
       } catch {
-        map = {};
+        // ignore parsing error
       }
     }
     if (record === null) {
@@ -380,7 +471,7 @@ export const storage = {
     } else {
       map[key] = record;
     }
-    localStorage.setItem(STORAGE_KEYS.LOGIN_ATTEMPTS, JSON.stringify(map));
+    safeSetItem(STORAGE_KEYS.LOGIN_ATTEMPTS, JSON.stringify(map));
   },
 
   /**
@@ -550,5 +641,181 @@ export const storage = {
 
   setGeminiApiKey(key: string): void {
     localStorage.setItem(STORAGE_KEYS.GEMINI_API_KEY, (key || '').trim());
+  },
+
+  // --- Resep Favorit (FR-05 / UC-05) ---
+  getFavoriteRecipes(userId: string): Recipe[] {
+    if (!userId || typeof userId !== 'string') return [];
+    const raw = localStorage.getItem(STORAGE_KEYS.FAVORITE_RECIPES);
+    if (!raw) return [];
+    try {
+      const records = JSON.parse(raw) as FavoriteRecipe[];
+      if (!Array.isArray(records)) return [];
+      return records
+        .filter(r => r && r.userId === userId && r.recipe && typeof r.recipe.id === 'string')
+        .map(r => r.recipe);
+    } catch {
+      return [];
+    }
+  },
+
+  isRecipeFavorited(userId: string, recipeId: string): boolean {
+    if (!userId || !recipeId) return false;
+    const favorites = this.getFavoriteRecipes(userId);
+    return favorites.some(r => r.id === recipeId);
+  },
+
+  toggleFavoriteRecipe(userId: string, recipe: Recipe): { favorited: boolean; recipe: Recipe } {
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      throw new Error('Silakan login terlebih dahulu untuk menyimpan resep favorit');
+    }
+    const current = this.getCurrentUser();
+    if (!current || current.id !== userId) {
+      throw new Error('Silakan login terlebih dahulu untuk menyimpan resep favorit');
+    }
+    if (!recipe || typeof recipe !== 'object' || !recipe.id || typeof recipe.id !== 'string') {
+      throw new Error('Data resep tidak valid');
+    }
+
+    const raw = localStorage.getItem(STORAGE_KEYS.FAVORITE_RECIPES);
+    let records: FavoriteRecipe[] = [];
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          records = parsed;
+        }
+      } catch {
+        records = [];
+      }
+    }
+
+    const existingIndex = records.findIndex(r => r.userId === userId && r.recipeId === recipe.id);
+    if (existingIndex >= 0) {
+      records.splice(existingIndex, 1);
+      safeSetItem(STORAGE_KEYS.FAVORITE_RECIPES, JSON.stringify(records));
+      return { favorited: false, recipe };
+    } else {
+      const clonedRecipe: Recipe = JSON.parse(JSON.stringify(recipe));
+      const newFavorite: FavoriteRecipe = {
+        id: `fav-rec-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        userId,
+        recipeId: recipe.id,
+        recipe: clonedRecipe,
+        savedAt: Date.now()
+      };
+      records.push(newFavorite);
+      safeSetItem(STORAGE_KEYS.FAVORITE_RECIPES, JSON.stringify(records));
+      return { favorited: true, recipe: clonedRecipe };
+    }
+  },
+
+  /**
+   * Menghapus resep dari daftar favorit secara idempotent (kebal double-click race condition)
+   */
+  removeFavoriteRecipe(userId: string, recipeId: string): boolean {
+    if (!userId || !recipeId) return false;
+    const raw = localStorage.getItem(STORAGE_KEYS.FAVORITE_RECIPES);
+    if (!raw) return false;
+    try {
+      const records = JSON.parse(raw);
+      if (!Array.isArray(records)) return false;
+      const filtered = records.filter((r: FavoriteRecipe) => !(r && r.userId === userId && r.recipeId === recipeId));
+      if (filtered.length !== records.length) {
+        safeSetItem(STORAGE_KEYS.FAVORITE_RECIPES, JSON.stringify(filtered));
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  },
+
+  // --- Tempat Kuliner Favorit (FR-06 / UC-06) ---
+  getFavoritePlaces(userId: string): CulinaryPlace[] {
+    if (!userId || typeof userId !== 'string') return [];
+    const raw = localStorage.getItem(STORAGE_KEYS.FAVORITE_PLACES);
+    if (!raw) return [];
+    try {
+      const records = JSON.parse(raw) as FavoritePlace[];
+      if (!Array.isArray(records)) return [];
+      return records
+        .filter(p => p && p.userId === userId && p.place && typeof p.place.id === 'string')
+        .map(p => p.place);
+    } catch {
+      return [];
+    }
+  },
+
+  isPlaceFavorited(userId: string, placeId: string): boolean {
+    if (!userId || !placeId) return false;
+    const favorites = this.getFavoritePlaces(userId);
+    return favorites.some(p => p.id === placeId);
+  },
+
+  toggleFavoritePlace(userId: string, place: CulinaryPlace): { favorited: boolean; place: CulinaryPlace } {
+    if (!userId || typeof userId !== 'string' || userId.trim() === '') {
+      throw new Error('Silakan login terlebih dahulu untuk menyimpan lokasi favorit');
+    }
+    const current = this.getCurrentUser();
+    if (!current || current.id !== userId) {
+      throw new Error('Silakan login terlebih dahulu untuk menyimpan lokasi favorit');
+    }
+    if (!place || typeof place !== 'object' || !place.id || typeof place.id !== 'string') {
+      throw new Error('Data tempat kuliner tidak valid');
+    }
+
+    const raw = localStorage.getItem(STORAGE_KEYS.FAVORITE_PLACES);
+    let records: FavoritePlace[] = [];
+    if (raw) {
+      try {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed)) {
+          records = parsed;
+        }
+      } catch {
+        records = [];
+      }
+    }
+
+    const existingIndex = records.findIndex(p => p.userId === userId && p.placeId === place.id);
+    if (existingIndex >= 0) {
+      records.splice(existingIndex, 1);
+      safeSetItem(STORAGE_KEYS.FAVORITE_PLACES, JSON.stringify(records));
+      return { favorited: false, place };
+    } else {
+      const clonedPlace: CulinaryPlace = JSON.parse(JSON.stringify(place));
+      const newFavorite: FavoritePlace = {
+        id: `fav-place-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+        userId,
+        placeId: place.id,
+        place: clonedPlace,
+        savedAt: Date.now()
+      };
+      records.push(newFavorite);
+      safeSetItem(STORAGE_KEYS.FAVORITE_PLACES, JSON.stringify(records));
+      return { favorited: true, place: clonedPlace };
+    }
+  },
+
+  /**
+   * Menghapus tempat kuliner dari favorit secara idempotent (kebal double-click race condition)
+   */
+  removeFavoritePlace(userId: string, placeId: string): boolean {
+    if (!userId || !placeId) return false;
+    const raw = localStorage.getItem(STORAGE_KEYS.FAVORITE_PLACES);
+    if (!raw) return false;
+    try {
+      const records = JSON.parse(raw);
+      if (!Array.isArray(records)) return false;
+      const filtered = records.filter((p: FavoritePlace) => !(p && p.userId === userId && p.placeId === placeId));
+      if (filtered.length !== records.length) {
+        safeSetItem(STORAGE_KEYS.FAVORITE_PLACES, JSON.stringify(filtered));
+        return true;
+      }
+      return false;
+    } catch {
+      return false;
+    }
   }
 };

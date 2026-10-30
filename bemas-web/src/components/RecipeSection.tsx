@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { CheckCircle2, AlertCircle, Lightbulb, Sparkles } from 'lucide-react';
-import { Recipe, RecipeCategoryTag } from '../types';
+import React, { useState, useEffect, useRef } from 'react';
+import { CheckCircle2, AlertCircle, Lightbulb, Sparkles, Heart } from 'lucide-react';
+import { Recipe, RecipeCategoryTag, User } from '../types';
 import { storage } from '../services/storage';
 import {
   generateRecipesWithAI,
@@ -12,9 +12,16 @@ import {
 interface RecipeSectionProps {
   onGoToMap: () => void;
   onOpenApiKeyModal?: () => void;
+  currentUser?: User | null;
+  onRequireLogin?: () => void;
 }
 
-export const RecipeSection: React.FC<RecipeSectionProps> = ({ onGoToMap, onOpenApiKeyModal }) => {
+export const RecipeSection: React.FC<RecipeSectionProps> = ({
+  onGoToMap,
+  onOpenApiKeyModal,
+  currentUser,
+  onRequireLogin
+}) => {
   // Daftar Bahan Makanan di Dapur (UC-03 Langkah 1)
   const [activeIngredients, setActiveIngredients] = useState<string[]>([
     'Telur Ayam',
@@ -31,6 +38,37 @@ export const RecipeSection: React.FC<RecipeSectionProps> = ({ onGoToMap, onOpenA
   const [selectedRecipeId, setSelectedRecipeId] = useState<string>(CURATED_RECIPES[0].id);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // State Favorit (FR-05 / UC-05)
+  const [favoriteIds, setFavoriteIds] = useState<string[]>(() => {
+    if (!currentUser) return [];
+    return storage.getFavoriteRecipes(currentUser.id).map(r => r.id);
+  });
+
+  useEffect(() => {
+    if (currentUser) {
+      setFavoriteIds(storage.getFavoriteRecipes(currentUser.id).map(r => r.id));
+    } else {
+      setFavoriteIds([]);
+    }
+  }, [currentUser]);
+
+  const isFavorited = (id: string) => favoriteIds.includes(id);
+
+  const handleToggleFavorite = (recipe: Recipe) => {
+    if (!currentUser) {
+      setErrorMessage('Silakan login terlebih dahulu untuk menyimpan resep favorit');
+      if (onRequireLogin) onRequireLogin();
+      return;
+    }
+    try {
+      const res = storage.toggleFavoriteRecipe(currentUser.id, recipe);
+      setFavoriteIds(storage.getFavoriteRecipes(currentUser.id).map(r => r.id));
+      showToast(res.favorited ? 'Resep berhasil disimpan ke favorit!' : 'Resep dihapus dari favorit');
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : 'Gagal menyimpan resep ke favorit');
+    }
+  };
 
   const quickSuggestions = [
     'Tempe',
@@ -49,10 +87,18 @@ export const RecipeSection: React.FC<RecipeSectionProps> = ({ onGoToMap, onOpenA
     '🥗 Sehat & Sayur'
   ];
 
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showToast = (msg: string) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
+    toastTimerRef.current = setTimeout(() => setToastMessage(null), 3500);
   };
+
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
 
   const handleAddIngredient = (rawItem: string) => {
     setErrorMessage(null);
@@ -362,6 +408,19 @@ export const RecipeSection: React.FC<RecipeSectionProps> = ({ onGoToMap, onOpenA
                   </span>
                 </div>
 
+                <button
+                  type="button"
+                  title={isFavorited(featuredRecipe.id) ? 'Hapus dari Favorit' : 'Simpan Resep Favorit'}
+                  aria-label={isFavorited(featuredRecipe.id) ? 'Hapus dari Favorit' : 'Simpan Resep Favorit'}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleToggleFavorite(featuredRecipe);
+                  }}
+                  className="absolute top-4 right-4 z-20 w-9 h-9 rounded-full bg-white/90 hover:bg-white text-rose-500 flex items-center justify-center shadow-lg transition active:scale-95 cursor-pointer"
+                >
+                  <Heart className={`w-5 h-5 ${isFavorited(featuredRecipe.id) ? 'fill-rose-500 text-rose-500' : 'text-[#786C68]'}`} />
+                </button>
+
                 <div className="absolute bottom-5 left-6 right-6 text-white">
                   <div className="flex items-center gap-3 text-xs text-orange-100 mb-1.5 flex-wrap">
                     <span>⏱ {featuredRecipe.prepTime}</span>
@@ -499,6 +558,18 @@ export const RecipeSection: React.FC<RecipeSectionProps> = ({ onGoToMap, onOpenA
                   <span className="text-[10px] font-bold text-[#FF5722] bg-[#FFEBE6] px-2 py-0.5 rounded-full">
                     ⏱ {sec.prepTime} • {sec.difficulty}
                   </span>
+                  <button
+                    type="button"
+                    title={isFavorited(sec.id) ? 'Hapus dari Favorit' : 'Simpan Resep Favorit'}
+                    aria-label={isFavorited(sec.id) ? 'Hapus dari Favorit' : 'Simpan Resep Favorit'}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleFavorite(sec);
+                    }}
+                    className="p-1 rounded-full text-rose-500 hover:bg-rose-50 transition cursor-pointer"
+                  >
+                    <Heart className={`w-4 h-4 ${isFavorited(sec.id) ? 'fill-rose-500 text-rose-500' : 'text-[#786C68]'}`} />
+                  </button>
                 </div>
 
                 <h4 className="font-bold text-sm text-[#1E1715] mb-1">{sec.title}</h4>

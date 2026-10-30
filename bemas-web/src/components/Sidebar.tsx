@@ -1,8 +1,8 @@
 import React from 'react';
-import { Home, ChefHat, MapPin, LogIn, LogOut } from 'lucide-react';
+import { Home, ChefHat, MapPin, Heart, LogIn, LogOut } from 'lucide-react';
 import { User } from '../types';
 
-export type EssentialTab = 'home' | 'recipe' | 'map';
+export type EssentialTab = 'home' | 'recipe' | 'map' | 'favorites';
 
 interface SidebarProps {
   activeTab: EssentialTab;
@@ -34,12 +34,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
       id: 'map',
       label: 'Kuliner GIS',
       icon: MapPin
+    },
+    {
+      id: 'favorites',
+      label: 'Favorit Saya',
+      icon: Heart
     }
   ];
 
   return (
     <aside className="w-[180px] sm:w-[200px] min-w-[180px] sm:min-w-[200px] bg-transparent py-6 pr-4 flex flex-col justify-between shrink-0 hidden md:flex">
-      {/* Essential Navigation Menu Items (Prototype 36.36% Scope) */}
+      {/* Navigation Menu Items (Prototype ~50% Scope: 6/11 Use Cases = 54.55%) */}
       <nav aria-label="Menu Utama" className="space-y-1.5">
         {menuItems.map(item => {
           const Icon = item.icon;

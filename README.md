@@ -19,29 +19,29 @@
 
 ---
 
-## 🚀 2. Matriks Progres Fitur (Tahap Evaluasi 30%–40%)
+## 🚀 2. Matriks Progres Fitur (Tahap Evaluasi ~50%)
 
 Berdasarkan dokumen spesifikasi formal [SRS_11241034_B.md](sdd%20srs/SRS_11241034_B.md) dan [SDD_11241034_B.md](sdd%20srs/SDD_11241034_B.md), sistem BEMAS memiliki total **11 Kebutuhan Fungsional / Use Case (`FR-01` s.d. `FR-11`)**.
 
-Sesuai kriteria evaluasi tugas besar (*minimal 30% dari jumlah fitur esensial dan tidak melebihi 40%*), prototipe ini mengimplementasikan **4 Fitur Esensial Utama**:
+Pada tahap evaluasi milestone **~50% progress**, prototipe ini mengimplementasikan **6 Fitur Inti Pengguna**:
 
-$$\text{Progress Fitur} = \frac{4\text{ Fitur Esensial}}{11\text{ Total Use Case SRS/SDD}} \times 100\% = \mathbf{36,36\%}$$
+$$\text{Progress Fitur} = \frac{6\text{ Fitur Selesai}}{11\text{ Total Use Case SRS/SDD}} \times 100\% = \mathbf{54,55\%}$$
 
-| No | Kode SRS | Nama Fitur / Modul | Aktor | Status Prototype (Tahap 30%–40%) |
+| No | Kode SRS | Nama Fitur / Modul | Aktor | Status Prototype (Tahap ~50%) |
 | :---: | :---: | :--- | :---: | :---: |
 | 1 | **FR-01 (UC-01)** | **Registrasi Akun Baru** (Enkripsi Salted Hash & Validasi) | Pengguna | ✅ **Selesai & Teruji (TDD)** |
 | 2 | **FR-02 (UC-02)** | **Login Akun** (Token JWT & Lockout Security 5x Gagal) | Pengguna | ✅ **Selesai & Teruji (TDD)** |
 | 3 | **FR-03 (UC-03)** | **Rekomendasi Resep AI** (BEMAS Generative Culinary Engine) | Pengguna | ✅ **Selesai & Teruji (TDD)** |
 | 4 | **FR-04 (UC-04)** | **Pencarian Kuliner GIS** (Leaflet OSM, Jarak Haversine) | Pengguna | ✅ **Selesai & Teruji (TDD)** |
-| 5 | FR-05 (UC-05) | Menyimpan Resep ke Daftar Favorit | Pengguna | ⏸️ Ditangguhkan ke Tahap > 40% |
-| 6 | FR-06 (UC-06) | Menyimpan Lokasi Kuliner ke Daftar Favorit | Pengguna | ⏸️ Ditangguhkan ke Tahap > 40% |
+| 5 | **FR-05 (UC-05)** | **Menyimpan Resep ke Daftar Favorit** (Bookmark Resep) | Pengguna | ✅ **Selesai & Teruji (TDD)** |
+| 6 | **FR-06 (UC-06)** | **Menyimpan Lokasi Kuliner ke Favorit** (Bookmark Tempat) | Pengguna | ✅ **Selesai & Teruji (TDD)** |
 | 7 | FR-07 (UC-07) | Mengirim Formulir Laporan Kendala / Bug | Pengguna | ⏸️ Ditangguhkan ke Tahap > 40% |
 | 8 | FR-08 (UC-08) | Menambahkan Data Kuliner Baru (Admin) | Admin | ⏸️ Ditangguhkan ke Tahap > 40% |
 | 9 | FR-09 (UC-09) | Memperbarui Informasi Data Kuliner (Admin) | Admin | ⏸️ Ditangguhkan ke Tahap > 40% |
 | 10 | FR-10 (UC-10) | Menghapus Data Kuliner dari Sistem (Admin) | Admin | ⏸️ Ditangguhkan ke Tahap > 40% |
 | 11 | FR-11 (UC-11) | Membalas & Menyelesaikan Laporan Kendala (Admin) | Admin | ⏸️ Ditangguhkan ke Tahap > 40% |
 
-> **Catatan Kepatuhan Evaluasi**: Fitur sekunder dan administrasi sengaja ditangguhkan agar prototipe tetap fokus pada kualitas fitur esensial tanpa melebihi batas 40% (*anti-overkill*), serta diperkuat dengan pengujian otomatis menyeluruh (33 unit test lulus 100%).
+> **Catatan Kepatuhan Evaluasi**: Seluruh fitur sisi pengguna (*End-User Interactive Capabilities*) kini telah berfungsi 100% dan diperkuat dengan audit bug hunting ekstrim serta **56 skenario pengujian otomatis (100% Lulus)**.
 
 ---
 
@@ -53,7 +53,7 @@ $$\text{Progress Fitur} = \frac{4\text{ Fitur Esensial}}{11\text{ Total Use Case
   - Dual Mode: *Google Gemini API (`gemini-1.5-flash`)* & *BEMAS Generative Culinary AI Engine* (Offline Dynamic AI Synthesizer)
   - Caching cerdas deterministik berbasis variasi kombinasi bahan makanan (SDD 3.3.1)
 * **Security & Auth**: One-way Salted Hashing (NFR-03), JWT Session Token (NFR-04), dan Lockout Protection 15 menit setelah 5x gagal berturut-turut (NFR-05)
-* **Testing Framework**: Vitest + React Testing Library (33 tests passed 100%)
+* **Testing Framework**: Vitest + React Testing Library (56 tests passed 100% across 6 suites)
 * **Build Tool**: Vite v6
 
 ---

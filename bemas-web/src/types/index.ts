@@ -75,3 +75,19 @@ export interface Recipe {
   engineName?: string;
 }
 
+export interface FavoriteRecipe {
+  id: string;
+  userId: string;
+  recipeId: string;
+  recipe: Recipe;
+  savedAt: number;
+}
+
+export interface FavoritePlace {
+  id: string;
+  userId: string;
+  placeId: string;
+  place: CulinaryPlace;
+  savedAt: number;
+}
+

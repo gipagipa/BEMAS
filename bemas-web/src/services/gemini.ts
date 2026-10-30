@@ -1,5 +1,16 @@
 import { Recipe, RecipeCategoryTag } from '../types';
-import { storage, sanitizeText, STORAGE_KEYS } from './storage';
+import { storage, sanitizeText, safeSetItem, STORAGE_KEYS } from './storage';
+
+export function sanitizeImageUrl(url?: string): string {
+  if (!url || typeof url !== 'string') {
+    return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1000&q=80';
+  }
+  const clean = url.trim();
+  if (clean.startsWith('https://') || clean.startsWith('http://')) {
+    return clean;
+  }
+  return 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=1000&q=80';
+}
 
 export const CURATED_RECIPES: Recipe[] = [
   {
@@ -150,11 +161,21 @@ export function addIngredientsToList(
     };
   }
 
+  if (currentList.length >= 30) {
+    return {
+      updated: currentList,
+      added: [],
+      duplicate: false,
+      error: 'Batas maksimal 30 bahan makanan telah tercapai'
+    };
+  }
+
   const nextList = [...currentList];
   const added: string[] = [];
   let foundDuplicate = false;
 
   for (const part of parts) {
+    if (nextList.length >= 30) break;
     const exists = nextList.some(existing => existing.toLowerCase() === part.toLowerCase());
     if (exists) {
       foundDuplicate = true;
@@ -226,11 +247,21 @@ export function saveCachedRecipes(cacheKey: string, recipes: Recipe[]): void {
       store = {};
     }
   }
+
+  // Pruning: jika cache melebihi 20 entri, hapus 5 entri terlama
+  const keys = Object.keys(store);
+  if (keys.length > 20) {
+    const sortedKeys = keys.sort(
+      (a, b) => (store[a]?.timestamp || 0) - (store[b]?.timestamp || 0)
+    );
+    sortedKeys.slice(0, 5).forEach(k => delete store[k]);
+  }
+
   store[cacheKey] = {
     timestamp: Date.now(),
     recipes
   };
-  localStorage.setItem(STORAGE_KEYS.RECIPE_CACHE, JSON.stringify(store));
+  safeSetItem(STORAGE_KEYS.RECIPE_CACHE, JSON.stringify(store));
 }
 
 /**
@@ -247,8 +278,9 @@ export function filterRecipesByCategory(
     if (rec.categoryTags && rec.categoryTags.includes(category as RecipeCategoryTag)) {
       return true;
     }
-    const text = `${rec.title} ${rec.description} ${rec.matchedIngredients.join(' ')}`.toLowerCase();
-    const prepMinutes = parseInt(rec.prepTime, 10) || 15;
+    const matched = Array.isArray(rec.matchedIngredients) ? rec.matchedIngredients : [];
+    const text = `${rec.title || ''} ${rec.description || ''} ${matched.join(' ')}`.toLowerCase();
+    const prepMinutes = parseInt(rec.prepTime || '15', 10) || 15;
 
     if (category === '⚡ Menu Cepat (< 20 Mnt)') {
       return prepMinutes <= 20;
@@ -375,7 +407,8 @@ KEMBALIKAN HANYA FORMAT JSON VALID berupa array of objects tanpa teks pembuka/pe
             ? r.steps
             : ['Siapkan dan olah seluruh bahan sesuai takaran.'],
         source: 'AI-Generated' as const,
-        engineName: 'Google Gemini 1.5 Flash'
+        engineName: 'Google Gemini 1.5 Flash',
+        imageUrl: sanitizeImageUrl(r.imageUrl)
       }));
 
       saveCachedRecipes(cacheKey, normalizedRecipes);

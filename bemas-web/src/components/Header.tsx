@@ -86,7 +86,7 @@ export const Header: React.FC<HeaderProps> = ({
               className="flex items-center gap-2 pl-1 pr-2.5 py-1 rounded-full bg-[#FFF8F6] border border-[#F0E5E1]"
             >
               <div className="w-7 h-7 rounded-full bg-[#FF5722] text-white flex items-center justify-center font-black text-xs shadow-xs">
-                {currentUser.name.charAt(0).toUpperCase()}
+                {Array.from(currentUser.name || 'U')[0]?.toUpperCase() || 'U'}
               </div>
               <span className="text-xs font-bold text-[#1E1715] hidden md:inline max-w-[120px] truncate">
                 {currentUser.name}

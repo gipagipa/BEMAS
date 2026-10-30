@@ -8,19 +8,23 @@ import {
   Clock,
   ExternalLink,
   CheckCircle2,
-  Utensils
+  Utensils,
+  Heart
 } from 'lucide-react';
-import { CulinaryPlace } from '../types';
+import { CulinaryPlace, User } from '../types';
 import {
   storage,
   calculateDistance,
   filterPlaces,
-  isValidCoordinate
+  isValidCoordinate,
+  escapeHtml
 } from '../services/storage';
 
 interface MapSectionProps {
   onGoToRecipe: () => void;
   externalSearchQuery?: string;
+  currentUser?: User | null;
+  onRequireLogin?: () => void;
 }
 
 export const DEFAULT_BALIKPAPAN_COORDS = {
@@ -30,7 +34,9 @@ export const DEFAULT_BALIKPAPAN_COORDS = {
 
 export const MapSection: React.FC<MapSectionProps> = ({
   onGoToRecipe,
-  externalSearchQuery = ''
+  externalSearchQuery = '',
+  currentUser,
+  onRequireLogin
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
@@ -44,6 +50,40 @@ export const MapSection: React.FC<MapSectionProps> = ({
   const [searchQuery, setSearchQuery] = useState(externalSearchQuery);
   const [selectedCategory, setSelectedCategory] = useState<string>('Semua');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // State Favorit (FR-06 / UC-06)
+  const [favoritePlaceIds, setFavoritePlaceIds] = useState<string[]>(() => {
+    if (!currentUser) return [];
+    return storage.getFavoritePlaces(currentUser.id).map(p => p.id);
+  });
+
+  useEffect(() => {
+    if (currentUser) {
+      setFavoritePlaceIds(storage.getFavoritePlaces(currentUser.id).map(p => p.id));
+    } else {
+      setFavoritePlaceIds([]);
+    }
+  }, [currentUser]);
+
+  const isPlaceFavorited = (id: string) => favoritePlaceIds.includes(id);
+
+  const handleToggleFavoritePlace = (place: CulinaryPlace) => {
+    if (!currentUser) {
+      setToastMessage('Silakan login terlebih dahulu untuk menyimpan lokasi favorit');
+      setTimeout(() => setToastMessage(null), 3500);
+      if (onRequireLogin) onRequireLogin();
+      return;
+    }
+    try {
+      const res = storage.toggleFavoritePlace(currentUser.id, place);
+      setFavoritePlaceIds(storage.getFavoritePlaces(currentUser.id).map(p => p.id));
+      setToastMessage(res.favorited ? `"${place.name}" berhasil disimpan ke favorit!` : `"${place.name}" dihapus dari favorit`);
+      setTimeout(() => setToastMessage(null), 3000);
+    } catch (err) {
+      setToastMessage(err instanceof Error ? err.message : 'Gagal menyimpan tempat ke favorit');
+      setTimeout(() => setToastMessage(null), 3000);
+    }
+  };
 
   // Sinkronisasi pencarian dari Header global jika berubah
   useEffect(() => {
@@ -142,10 +182,10 @@ export const MapSection: React.FC<MapSectionProps> = ({
           .addTo(map)
           .bindPopup(`
             <div style="font-family: inherit; font-size: 13px; max-width: 230px;">
-              <b style="font-size: 14px; color: #1E1715;">${place.name}</b>
-              <div style="color: #FF5722; font-size: 12px; margin-top: 2px;">★ ${place.rating} (${place.reviewsCount} ulasan) • ${dist} km</div>
-              <div style="color: #786C68; font-size: 11px; margin-top: 4px;">${place.address}</div>
-              <div style="margin-top: 6px; font-weight: 600; color: #FF5722;">Menu: ${place.featuredMenu}</div>
+              <b style="font-size: 14px; color: #1E1715;">${escapeHtml(place.name)}</b>
+              <div style="color: #FF5722; font-size: 12px; margin-top: 2px;">★ ${Number(place.rating) || 0} (${Number(place.reviewsCount) || 0} ulasan) • ${dist} km</div>
+              <div style="color: #786C68; font-size: 11px; margin-top: 4px;">${escapeHtml(place.address)}</div>
+              <div style="margin-top: 6px; font-weight: 600; color: #FF5722;">Menu: ${escapeHtml(place.featuredMenu)}</div>
             </div>
           `);
 
@@ -160,13 +200,21 @@ export const MapSection: React.FC<MapSectionProps> = ({
     }
   }, [userLocation, filteredPlaces]);
 
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showToast = (msg: string) => {
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
     setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 3500);
+    toastTimerRef.current = setTimeout(() => setToastMessage(null), 3500);
   };
 
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
+
   /**
-   * UC-04 Langkah 2, 3, & Exceptional Flow 3a (Izin Lokasi Ditolak / Tidak Didukung)
+   * UC-04 Langkah 2, 3, & Exceptional Flow 3a (Izin Lokasi Ditolak / Timeout / Tidak Didukung)
    */
   const requestGpsLocation = () => {
     if (typeof navigator !== 'undefined' && navigator.geolocation) {
@@ -190,12 +238,13 @@ export const MapSection: React.FC<MapSectionProps> = ({
           }
         },
         () => {
-          // Exceptional Flow 3a: Izin Lokasi Ditolak
+          // Exceptional Flow 3a: Izin Lokasi Ditolak / Timeout
           setUserLocation(DEFAULT_BALIKPAPAN_COORDS);
           showToast(
             'Izin lokasi GPS ditolak, menggunakan lokasi standar kota Balikpapan (ITK).'
           );
-        }
+        },
+        { timeout: 8000, maximumAge: 60000, enableHighAccuracy: false }
       );
     } else {
       setUserLocation(DEFAULT_BALIKPAPAN_COORDS);
@@ -344,13 +393,27 @@ export const MapSection: React.FC<MapSectionProps> = ({
                 <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-[#FFEBE6] text-[#FF5722]">
                   Detail Tempat Kuliner
                 </span>
-                <button
-                  type="button"
-                  onClick={() => setSelectedPlace(null)}
-                  className="text-xs text-[#786C68] hover:text-[#FF5722] font-bold"
-                >
-                  Tutup ✕
-                </button>
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    title={isPlaceFavorited(selectedPlace.id) ? 'Hapus dari Favorit' : 'Simpan Lokasi Favorit'}
+                    aria-label={isPlaceFavorited(selectedPlace.id) ? 'Hapus dari Favorit' : 'Simpan Lokasi Favorit'}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleToggleFavoritePlace(selectedPlace);
+                    }}
+                    className="p-1 rounded-full text-rose-500 hover:bg-rose-50 transition cursor-pointer"
+                  >
+                    <Heart className={`w-4 h-4 ${isPlaceFavorited(selectedPlace.id) ? 'fill-rose-500 text-rose-500' : 'text-[#786C68]'}`} />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedPlace(null)}
+                    className="text-xs text-[#786C68] hover:text-[#FF5722] font-bold cursor-pointer"
+                  >
+                    Tutup ✕
+                  </button>
+                </div>
               </div>
 
               <h3 className="font-extrabold text-[#1E1715] text-base">{selectedPlace.name}</h3>
@@ -425,6 +488,18 @@ export const MapSection: React.FC<MapSectionProps> = ({
                         <span className="text-[10px] font-bold text-[#FF5722] bg-[#FFEBE6] px-2.5 py-0.5 rounded-full">
                           {place.category}
                         </span>
+                        <button
+                          type="button"
+                          title={isPlaceFavorited(place.id) ? 'Hapus dari Favorit' : 'Simpan Lokasi Favorit'}
+                          aria-label={isPlaceFavorited(place.id) ? 'Hapus dari Favorit' : 'Simpan Lokasi Favorit'}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleToggleFavoritePlace(place);
+                          }}
+                          className="p-1 rounded-full text-rose-500 hover:bg-rose-50 transition cursor-pointer"
+                        >
+                          <Heart className={`w-3.5 h-3.5 ${isPlaceFavorited(place.id) ? 'fill-rose-500 text-rose-500' : 'text-[#786C68]'}`} />
+                        </button>
                       </div>
 
                       <h4 className="font-bold text-[#1E1715] text-sm truncate mt-1">

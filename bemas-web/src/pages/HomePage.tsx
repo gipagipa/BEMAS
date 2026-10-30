@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import { Star } from 'lucide-react';
-import { storage } from '../services/storage';
+import { storage, escapeHtml } from '../services/storage';
 import { CURATED_RECIPES } from '../services/gemini';
 
 interface HomePageProps {
@@ -54,9 +54,9 @@ export const HomePage: React.FC<HomePageProps> = ({
           const marker = L.marker([spot.lat, spot.lng], { icon: customIcon }).addTo(map);
           marker.bindPopup(`
             <div style="font-family: inherit; font-size: 12px; padding: 2px;">
-              <strong style="color: #FF5722; font-size: 13px;">${spot.name}</strong><br/>
-              <span>★ ${spot.rating} • ${spot.category}</span><br/>
-              <span style="color: #10B981; font-weight: 600;">${spot.operatingHours}</span>
+              <strong style="color: #FF5722; font-size: 13px;">${escapeHtml(spot.name)}</strong><br/>
+              <span>★ ${Number(spot.rating) || 0} • ${escapeHtml(spot.category)}</span><br/>
+              <span style="color: #10B981; font-weight: 600;">${escapeHtml(spot.operatingHours)}</span>
             </div>
           `);
         });

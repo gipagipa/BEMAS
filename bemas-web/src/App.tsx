@@ -4,12 +4,13 @@ import { Header } from './components/Header';
 import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { FavoritesPage } from './pages/FavoritesPage';
 import { RecipeSection } from './components/RecipeSection';
 import { MapSection } from './components/MapSection';
 import { ApiKeyModal } from './components/ApiKeyModal';
 import { storage } from './services/storage';
 import { User } from './types';
-import { ChefHat, MapPin, Home, LogIn } from 'lucide-react';
+import { ChefHat, MapPin, Home, LogIn, Heart } from 'lucide-react';
 
 export function App() {
   // Page Routing: 'app' | 'login' | 'register'
@@ -129,6 +130,8 @@ export function App() {
               <RecipeSection
                 onGoToMap={() => setActiveTab('map')}
                 onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
+                currentUser={currentUser}
+                onRequireLogin={() => setCurrentView('login')}
               />
             )}
 
@@ -136,6 +139,17 @@ export function App() {
               <MapSection
                 onGoToRecipe={() => setActiveTab('recipe')}
                 externalSearchQuery={searchQuery}
+                currentUser={currentUser}
+                onRequireLogin={() => setCurrentView('login')}
+              />
+            )}
+
+            {activeTab === 'favorites' && (
+              <FavoritesPage
+                currentUser={currentUser}
+                onNavigateToLogin={() => setCurrentView('login')}
+                onNavigateToRecipe={() => setActiveTab('recipe')}
+                onNavigateToMap={() => setActiveTab('map')}
               />
             )}
           </main>
@@ -143,7 +157,7 @@ export function App() {
           {/* Academic Footer */}
           <footer className="px-8 py-6 border-t border-[#F0E5E1] bg-white/60 text-xs text-[#786C68] flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
             <div>
-              <span className="font-extrabold text-[#1E1715]">BEMAS (Beli atau Masak)</span> — Prototype Tugas Besar IPPL 2026 (Progress Esensial: 4/11 Fitur = 36,36%)
+              <span className="font-extrabold text-[#1E1715]">BEMAS (Beli atau Masak)</span> — Prototype Tugas Besar IPPL 2026 (Progress: 6/11 Fitur = 54,55%)
             </div>
             <div className="flex items-center gap-4">
               <button
@@ -209,6 +223,17 @@ export function App() {
         >
           <MapPin className="w-5 h-5" />
           <span>Kuliner</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('favorites')}
+          className={`flex flex-col items-center gap-1 text-[10px] font-bold ${
+            activeTab === 'favorites' ? 'text-[#FF5722]' : 'text-[#786C68]'
+          }`}
+        >
+          <Heart className="w-5 h-5" />
+          <span>Favorit</span>
         </button>
 
         <button

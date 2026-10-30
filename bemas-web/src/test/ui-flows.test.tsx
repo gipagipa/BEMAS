@@ -187,4 +187,61 @@ describe('SDD & TDD Suite 4: Integrasi Antarmuka & Edge Case Flow (UC-01 s.d. UC
       /Izin lokasi GPS ditolak, menggunakan lokasi standar kota Balikpapan/i
     );
   });
+
+  it('Flow UC-05 & UC-06: Pengguna belum login mencoba favorit -> muncul notifikasi / prompt login', () => {
+    render(<App />);
+
+    // Buka tab Resep AI (gunakan elemen sidebar pertama)
+    fireEvent.click(screen.getAllByRole('button', { name: /Resep AI/i })[0]);
+
+    // Coba klik tombol simpan favorit pada resep utama
+    const favRecipeBtn = screen.getAllByTitle(/Simpan Resep Favorit/i)[0];
+    fireEvent.click(favRecipeBtn);
+
+    // Harus dialihkan ke halaman Login sesuai flow autentikasi
+    expect(
+      screen.getByRole('heading', { name: /Masuk ke Akun Dapurmu/i })
+    ).toBeInTheDocument();
+  });
+
+  it('Flow UC-05 & UC-06: Pengguna login -> Simpan resep favorit -> Buka tab Favorit Saya -> Item tampil & dapat dihapus', async () => {
+    render(<App />);
+
+    // 1. Login dulu dengan kredensial default
+    const loginHeaderBtn = screen.getAllByRole('button', { name: /^Masuk$/i })[0];
+    fireEvent.click(loginHeaderBtn);
+
+    fireEvent.change(screen.getByLabelText(/^Kata Sandi$/i), {
+      target: { value: 'Password123!' }
+    });
+    fireEvent.click(screen.getByRole('button', { name: /Masuk ke Dapur BEMAS/i }));
+
+    // 2. Ke tab Resep AI dan simpan resep utama ke favorit (UC-05)
+    fireEvent.click(screen.getAllByRole('button', { name: /Resep AI/i })[0]);
+    const favRecipeBtn = screen.getAllByTitle(/Simpan Resep Favorit/i)[0];
+    fireEvent.click(favRecipeBtn);
+    expect(screen.getByRole('status')).toHaveTextContent(/Resep berhasil disimpan ke favorit!/i);
+
+    // 3. Ke tab Kuliner GIS dan simpan tempat kuliner ke favorit (UC-06)
+    fireEvent.click(screen.getAllByRole('button', { name: /Kuliner/i })[0]);
+    const favPlaceBtn = screen.getAllByTitle(/Simpan Lokasi Favorit/i)[0];
+    fireEvent.click(favPlaceBtn);
+    expect(screen.getByRole('status')).toHaveTextContent(/berhasil disimpan ke favorit!/i);
+
+    // 4. Buka tab Favorit Saya di sidebar
+    fireEvent.click(screen.getAllByRole('button', { name: /Favorit/i })[0]);
+
+    // Tab Resep Favorit aktif dan menampilkan resep tersimpan
+    expect(screen.getByText(/Koleksi Favorit Pribadi/i)).toBeInTheDocument();
+    expect(screen.getByText(/Tumis Tahu Telur Gurih Manis/i)).toBeInTheDocument();
+
+    // 5. Berpindah ke tab Kuliner Favorit
+    fireEvent.click(screen.getByRole('button', { name: /Kuliner Favorit/i }));
+    expect(screen.getByText(/Ayam Bakar Salwa/i)).toBeInTheDocument();
+
+    // 6. Hapus dari favorit di FavoritesPage
+    const removeFavBtn = screen.getByTitle(/Hapus dari Favorit/i);
+    fireEvent.click(removeFavBtn);
+    expect(screen.getByRole('status')).toHaveTextContent(/dihapus dari favorit/i);
+  });
 });
