@@ -232,12 +232,30 @@ export function ensureRecipeDetails(r: Recipe): Recipe {
   };
 }
 
+export const NON_EDIBLE_KEYWORDS = [
+  'gerinda', 'kursi', 'beton', 'semen', 'batu', 'pasir', 'besi', 'baja',
+  'plastik', 'kaca', 'kayu', 'kertas', 'kardus', 'paku', 'palu', 'obeng',
+  'tang', 'gergaji', 'bensin', 'solar', 'oli', 'minyak tanah', 'cat',
+  'thinner', 'deterjen', 'sabun cuci', 'racun', 'pestisida', 'baterai',
+  'kabel', 'ban', 'karet', 'tembok', 'genteng', 'bata', 'asbes', 'seng',
+  'meja', 'lemari', 'pintu', 'jendela', 'sepatu', 'baju', 'celana',
+  'motor', 'mobil', 'sepeda', 'helm', 'knalpot', 'spion'
+];
+
+export function isNonEdibleItem(item: string): boolean {
+  const lower = item.toLowerCase().trim();
+  return NON_EDIBLE_KEYWORDS.some(
+    kw => lower === kw || lower.startsWith(`${kw} `) || lower.endsWith(` ${kw}`) || lower.includes(` ${kw} `)
+  );
+}
+
 /**
- * Validasi apakah string bahan makanan sah (mengandung minimal 2 huruf alfabet)
+ * Validasi apakah string bahan makanan sah (mengandung minimal 2 huruf alfabet dan bukan benda non-pangan)
  */
 export function isValidIngredient(item: string): boolean {
   const clean = sanitizeIngredient(item);
   if (clean.length < 2 || clean.length > 60) return false;
+  if (isNonEdibleItem(clean)) return false;
   const letterMatches = clean.match(/[a-zA-Z]/g);
   return Boolean(letterMatches && letterMatches.length >= 2);
 }
@@ -268,6 +286,16 @@ export function addIngredientsToList(
     .split(',')
     .map(p => sanitizeIngredient(p))
     .filter(Boolean);
+
+  const nonEdiblePart = parts.find(p => isNonEdibleItem(p));
+  if (nonEdiblePart) {
+    return {
+      updated: currentList,
+      added: [],
+      duplicate: false,
+      error: `Bahan '${nonEdiblePart}' bukan merupakan bahan makanan/pangan yang dapat diolah.`
+    };
+  }
 
   if (parts.length === 0 || !parts.every(isValidIngredient)) {
     return {
@@ -416,6 +444,62 @@ export function filterRecipesByCategory(
 }
 
 /**
+ * Memvalidasi apakah Google Gemini API Key aktif dan dapat terhubung secara realtime
+ */
+export async function validateGeminiApiKey(
+  apiKey: string
+): Promise<{ valid: boolean; message: string; model?: string }> {
+  const clean = apiKey.trim();
+  if (!clean) {
+    return { valid: false, message: 'Kunci API kosong. Silakan masukkan kunci API Anda.' };
+  }
+
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${clean}`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: 'Balas hanya satu kata: AKTIF' }] }],
+        generationConfig: {
+          maxOutputTokens: 10,
+          temperature: 0.1
+        }
+      })
+    });
+
+    if (!response.ok) {
+      const errData = await response.json().catch(() => null);
+      const googleErr = errData?.error?.message || `HTTP ${response.status} (${response.statusText})`;
+      return {
+        valid: false,
+        message: `Google Gemini menolak kunci API: ${googleErr}`
+      };
+    }
+
+    const data = await response.json();
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (reply) {
+      return {
+        valid: true,
+        message: 'Koneksi berhasil! Kunci API aktif dan terhubung ke Google Gemini 1.5 Flash.',
+        model: 'gemini-1.5-flash'
+      };
+    }
+
+    return {
+      valid: false,
+      message: 'Respons dari Google Gemini kosong atau tidak valid.'
+    };
+  } catch (err) {
+    return {
+      valid: false,
+      message: `Gagal menghubungi server Google: ${err instanceof Error ? err.message : 'Koneksi internet bermasalah'}`
+    };
+  }
+}
+
+/**
  * UC-03: Mencari Resep Berdasarkan Bahan melalui Engine AI (Gemini) & Smart Fallback
  * - Exceptional Flow 1a: Input kosong melempar error "Silakan masukkan minimal satu bahan makanan"
  * - Exceptional Flow 3a: Menangani kegagalan jaringan/API dengan aman
@@ -437,13 +521,18 @@ export async function generateRecipesWithAI(
     throw new Error('Silakan masukkan minimal satu bahan makanan');
   }
 
+  const apiKey = storage.getGeminiApiKey();
   const cacheKey = getRecipeCacheKey(validIngredients, preferences);
   const cached = getCachedRecipes(cacheKey);
-  if (cached) {
-    return cached;
-  }
 
-  const apiKey = storage.getGeminiApiKey();
+  // Jika ada cache:
+  // Jangan gunakan cache offline jika pengguna memiliki API key aktif yang ingin memanggil AI live
+  if (cached && cached.length > 0) {
+    const isAiCached = cached.some(r => r.engineName?.includes('Gemini'));
+    if (!apiKey || isAiCached) {
+      return cached;
+    }
+  }
 
   if (apiKey) {
     try {
