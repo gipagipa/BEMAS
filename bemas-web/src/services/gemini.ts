@@ -444,6 +444,41 @@ export function filterRecipesByCategory(
 }
 
 let cachedWorkingModel: string = 'gemini-1.5-flash-latest';
+export let cachedWorkingVersion: string = 'v1beta';
+
+/**
+ * Mengambil daftar nama model yang mendukung generateContent dari server Google
+ */
+export async function fetchGoogleModelsList(apiKey: string): Promise<string[]> {
+  const cleanKey = apiKey.trim();
+  const versions = ['v1beta', 'v1'];
+  for (const v of versions) {
+    try {
+      const listUrl = `https://generativelanguage.googleapis.com/${v}/models?key=${cleanKey}`;
+      const listRes = await fetch(listUrl, {
+        headers: {
+          'x-goog-api-key': cleanKey
+        }
+      });
+      if (listRes.ok) {
+        const data = await listRes.json();
+        if (Array.isArray(data?.models)) {
+          const supported = data.models.filter(
+            (m: { name?: string; supportedGenerationMethods?: string[] }) =>
+              Array.isArray(m.supportedGenerationMethods) &&
+              m.supportedGenerationMethods.includes('generateContent')
+          );
+          if (supported.length > 0) {
+            return supported.map((m: { name: string }) => m.name.replace(/^models\//, ''));
+          }
+        }
+      }
+    } catch {
+      // Coba versi API berikutnya
+    }
+  }
+  return [];
+}
 
 /**
  * Mencari model Gemini yang aktif dan didukung oleh akun / project pengguna
@@ -455,46 +490,26 @@ export async function getAvailableGeminiModel(
 ): Promise<string> {
   if (!forceRefresh && cachedWorkingModel) return cachedWorkingModel;
 
-  const cleanKey = apiKey.trim();
-  try {
-    const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${cleanKey}`;
-    const listRes = await fetch(listUrl);
-    if (listRes.ok) {
-      const data = await listRes.json();
-      if (Array.isArray(data?.models)) {
-        const supported = data.models.filter(
-          (m: { name?: string; supportedGenerationMethods?: string[] }) =>
-            Array.isArray(m.supportedGenerationMethods) &&
-            m.supportedGenerationMethods.includes('generateContent')
-        );
-
-        if (supported.length > 0) {
-          const names: string[] = supported.map((m: { name: string }) =>
-            m.name.replace(/^models\//, '')
-          );
-          // Prioritas 1: Model flash aktif (misal gemini-1.5-flash-latest, gemini-1.5-flash-002, gemini-2.0-flash-exp)
-          const flashModel = names.find(
-            n => n.includes('flash') && !n.includes('deprecated')
-          );
-          if (flashModel) {
-            cachedWorkingModel = flashModel;
-            return flashModel;
-          }
-          // Prioritas 2: Model pro aktif
-          const proModel = names.find(
-            n => n.includes('pro') && !n.includes('vision')
-          );
-          if (proModel) {
-            cachedWorkingModel = proModel;
-            return proModel;
-          }
-          cachedWorkingModel = names[0];
-          return names[0];
-        }
-      }
+  const discovered = await fetchGoogleModelsList(apiKey);
+  if (discovered.length > 0) {
+    // Prioritas 1: Model flash aktif
+    const flashModel = discovered.find(
+      n => n.includes('flash') && !n.includes('deprecated')
+    );
+    if (flashModel) {
+      cachedWorkingModel = flashModel;
+      return flashModel;
     }
-  } catch {
-    // Abaikan error jaringan saat list models, beralih ke daftar kandidat
+    // Prioritas 2: Model pro aktif
+    const proModel = discovered.find(
+      n => n.includes('pro') && !n.includes('vision')
+    );
+    if (proModel) {
+      cachedWorkingModel = proModel;
+      return proModel;
+    }
+    cachedWorkingModel = discovered[0];
+    return discovered[0];
   }
 
   return cachedWorkingModel || 'gemini-1.5-flash-latest';
@@ -511,66 +526,76 @@ export async function validateGeminiApiKey(
     return { valid: false, message: 'Kunci API kosong. Silakan masukkan kunci API Anda.' };
   }
 
-  // Cari model yang tersedia dari ListModels secara aktual
-  const primaryModel = await getAvailableGeminiModel(clean, true);
+  // Ambil daftar model yang dilaporkan secara aktual oleh server Google untuk akun ini
+  const discovered = await fetchGoogleModelsList(clean);
 
-  // Kandidat model yang dicoba secara bertahap jika model tertentu tidak tersedia
+  // Kumpulkan semua kandidat model
   const candidateModels = Array.from(
     new Set([
-      primaryModel,
+      ...discovered,
+      'gemini-2.5-flash',
+      'gemini-2.0-flash',
+      'gemini-2.0-flash-exp',
       'gemini-1.5-flash-latest',
       'gemini-1.5-flash-002',
       'gemini-1.5-flash-001',
-      'gemini-2.0-flash-exp',
+      'gemini-1.5-flash',
       'gemini-1.5-pro',
       'gemini-pro'
     ])
   );
 
+  const versionsToTry = ['v1beta', 'v1'];
   let lastErrorMsg = '';
 
-  for (const candidate of candidateModels) {
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${candidate}:generateContent?key=${clean}`;
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: 'Balas hanya satu kata: AKTIF' }] }],
-          generationConfig: {
-            maxOutputTokens: 10,
-            temperature: 0.1
-          }
-        })
-      });
+  for (const version of versionsToTry) {
+    for (const candidate of candidateModels) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/${version}/models/${candidate}:generateContent?key=${clean}`;
+        const response = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': clean
+          },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: 'Balas hanya satu kata: AKTIF' }] }],
+            generationConfig: {
+              maxOutputTokens: 10,
+              temperature: 0.1
+            }
+          })
+        });
 
-      if (response.ok) {
-        const data = await response.json();
-        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (reply) {
-          cachedWorkingModel = candidate;
-          return {
-            valid: true,
-            message: `Koneksi berhasil! Kunci API aktif dan terhubung ke Google ${candidate}.`,
-            model: candidate
-          };
+        if (response.ok) {
+          const data = await response.json();
+          const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (reply) {
+            cachedWorkingModel = candidate;
+            cachedWorkingVersion = version;
+            return {
+              valid: true,
+              message: `Koneksi berhasil! Kunci API aktif dan terhubung ke Google ${candidate} (${version}).`,
+              model: candidate
+            };
+          }
+        } else {
+          const errData = await response.json().catch(() => null);
+          lastErrorMsg = errData?.error?.message || `HTTP ${response.status} (${response.statusText})`;
+          // Jika kunci API salah (API_KEY_INVALID), jangan lanjutkan loop karena kunci tidak valid
+          if (
+            lastErrorMsg.includes('API_KEY_INVALID') ||
+            (response.status === 400 && lastErrorMsg.toLowerCase().includes('api key not valid'))
+          ) {
+            return {
+              valid: false,
+              message: `Google Gemini menolak kunci API: Kunci API tidak valid (${lastErrorMsg})`
+            };
+          }
         }
-      } else {
-        const errData = await response.json().catch(() => null);
-        lastErrorMsg = errData?.error?.message || `HTTP ${response.status} (${response.statusText})`;
-        // Jika kunci API salah (API_KEY_INVALID), jangan lanjutkan loop karena kunci tidak valid
-        if (
-          lastErrorMsg.includes('API_KEY_INVALID') ||
-          (response.status === 400 && lastErrorMsg.toLowerCase().includes('api key not valid'))
-        ) {
-          return {
-            valid: false,
-            message: `Google Gemini menolak kunci API: Kunci API tidak valid (${lastErrorMsg})`
-          };
-        }
+      } catch (err) {
+        lastErrorMsg = err instanceof Error ? err.message : 'Koneksi internet bermasalah';
       }
-    } catch (err) {
-      lastErrorMsg = err instanceof Error ? err.message : 'Koneksi internet bermasalah';
     }
   }
 
@@ -651,10 +676,13 @@ KEMBALIKAN HANYA FORMAT JSON VALID berupa array of objects tanpa teks pembuka/pe
 ]`;
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/${cachedWorkingVersion}/models/${activeModel}:generateContent?key=${apiKey}`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            'x-goog-api-key': apiKey
+          },
           body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
             generationConfig: {
