@@ -72,7 +72,7 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => 
         </div>
 
         <p className="text-xs text-slate-600 mb-4 leading-relaxed">
-          Kunci API ini digunakan untuk memanggil model <code>gemini-1.5-flash</code> secara real-time saat pengguna meminta rekomendasi resep masakan.
+          Kunci API ini digunakan untuk memanggil model <code>Google Gemini Flash</code> secara real-time saat pengguna meminta rekomendasi resep masakan atau mengobrol dengan Chef AI.
         </p>
 
         <form onSubmit={handleSave} className="space-y-4 text-xs">
@@ -138,23 +138,28 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => 
             Jika API key dikosongkan, sistem tetap berjalan normal menggunakan <em>Smart Curated Fallback Engine</em>, sehingga demo Anda saat video presentasi tetap dijamin 100% lancar!
           </div>
 
-          <div className="flex items-center justify-between pt-2">
-            <a
-              href="https://aistudio.google.com/app/apikey"
-              target="_blank"
-              rel="noreferrer"
-              className="text-orange-600 hover:underline flex items-center gap-1 font-semibold"
-            >
-              Dapatkan API Key Gratis <ExternalLink className="w-3 h-3" />
-            </a>
+          <div className="pt-2">
+            <p className="text-[11px] text-slate-500 mb-2 leading-relaxed">
+              💡 <strong>Tips AI Studio:</strong> Di Google AI Studio, pilih opsi <strong>"Create API key in NEW project"</strong> agar kuota gratis (Free Tier) langsung aktif tanpa perlu kartu kredit.
+            </p>
+            <div className="flex items-center justify-between">
+              <a
+                href="https://aistudio.google.com/app/apikey"
+                target="_blank"
+                rel="noreferrer"
+                className="text-orange-600 hover:underline flex items-center gap-1 font-semibold"
+              >
+                Dapatkan API Key Gratis <ExternalLink className="w-3 h-3" />
+              </a>
 
-            <button
-              type="submit"
-              className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold flex items-center gap-1.5 shadow-xs transition cursor-pointer"
-            >
-              {isSaved ? <Check className="w-4 h-4 text-emerald-400" /> : null}
-              <span>{isSaved ? 'Tersimpan!' : 'Simpan Kunci'}</span>
-            </button>
+              <button
+                type="submit"
+                className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold flex items-center gap-1.5 shadow-xs transition cursor-pointer"
+              >
+                {isSaved ? <Check className="w-4 h-4 text-emerald-400" /> : null}
+                <span>{isSaved ? 'Tersimpan!' : 'Simpan Kunci'}</span>
+              </button>
+            </div>
           </div>
         </form>
       </div>

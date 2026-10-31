@@ -443,7 +443,7 @@ export function filterRecipesByCategory(
   });
 }
 
-let cachedWorkingModel: string = 'gemini-1.5-flash-latest';
+let cachedWorkingModel: string = 'gemini-3.8-flash';
 export let cachedWorkingVersion: string = 'v1beta';
 
 /**
@@ -492,27 +492,30 @@ export async function getAvailableGeminiModel(
 
   const discovered = await fetchGoogleModelsList(apiKey);
   if (discovered.length > 0) {
-    // Prioritas 1: Model flash aktif
-    const flashModel = discovered.find(
-      n => n.includes('flash') && !n.includes('deprecated')
-    );
-    if (flashModel) {
-      cachedWorkingModel = flashModel;
-      return flashModel;
+    // Prioritaskan model generasi modern sesuai rekomendasi Google
+    const preferredOrder = [
+      'gemini-3.8-flash',
+      'gemini-3.5-flash',
+      'gemini-flash-latest',
+      'gemini-3.1-flash-lite',
+      'gemini-2.5-flash'
+    ];
+    for (const pref of preferredOrder) {
+      if (discovered.includes(pref)) {
+        cachedWorkingModel = pref;
+        return pref;
+      }
     }
-    // Prioritas 2: Model pro aktif
-    const proModel = discovered.find(
-      n => n.includes('pro') && !n.includes('vision')
-    );
-    if (proModel) {
-      cachedWorkingModel = proModel;
-      return proModel;
+    const anyFlash = discovered.find(n => n.includes('flash') && !n.includes('deprecated'));
+    if (anyFlash) {
+      cachedWorkingModel = anyFlash;
+      return anyFlash;
     }
     cachedWorkingModel = discovered[0];
     return discovered[0];
   }
 
-  return cachedWorkingModel || 'gemini-1.5-flash-latest';
+  return cachedWorkingModel || 'gemini-3.8-flash';
 }
 
 /**
@@ -527,8 +530,8 @@ export async function validateGeminiApiKey(
     return { valid: false, message: 'Kunci API kosong. Silakan masukkan kunci API Anda.' };
   }
 
-  // Pilih model target utama
-  const targetModel = 'gemini-2.5-flash';
+  // Gunakan model Flash terkini yang direkomendasikan Google
+  const targetModel = 'gemini-3.8-flash';
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${clean}`;
 
   try {
@@ -563,15 +566,15 @@ export async function validateGeminiApiKey(
     const errData = await response.json().catch(() => null);
     const rawMsg: string = errData?.error?.message || `HTTP ${response.status} (${response.statusText})`;
 
-    // Analisis spesifik error dari server Google untuk panduan langsung ke pengguna
+    // Analisis spesifik status error dari server Google untuk panduan langsung ke pengguna
     if (rawMsg.includes('free tier is not available')) {
       return {
         valid: false,
         message:
-          'Akses Free Tier tidak tersedia pada Project Google Cloud ini: ' +
+          'Akses Free Tier belum aktif pada Project Google Cloud ini: ' +
           '"The Gemini API free tier is not available for this project". ' +
-          'Penyebab umum: Akun Google Workspace / organisasi kampus membatasi akses gratis. ' +
-          'Solusi: Buat API Key baru di Google AI Studio (https://aistudio.google.com) menggunakan akun personal @gmail.com.'
+          'Catatan: Meskipun memakai akun personal @gmail.com, Google mengaitkan API key ke project yang dibuat. ' +
+          'Solusi: Di Google AI Studio (https://aistudio.google.com/app/apikey), klik "Create API key" lalu pilih opsi "Create API key in NEW project" (bukan di project lama), atau aktifkan billing di https://aistudio.google.com/billing.'
       };
     }
 
@@ -582,40 +585,9 @@ export async function validateGeminiApiKey(
       };
     }
 
-    if (rawMsg.includes('no longer available to new users') || rawMsg.includes('not found')) {
-      // Coba satu kali fallback ke gemini-1.5-flash
-      const fallbackModel = 'gemini-1.5-flash';
-      const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/${fallbackModel}:generateContent?key=${clean}`;
-      const fbRes = await fetch(fallbackUrl, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': clean },
-        body: JSON.stringify({ contents: [{ parts: [{ text: 'AKTIF' }] }] })
-      });
-      if (fbRes.ok) {
-        cachedWorkingModel = fallbackModel;
-        return {
-          valid: true,
-          message: `Koneksi berhasil! Kunci API aktif dan terhubung ke Google ${fallbackModel}.`,
-          model: fallbackModel
-        };
-      }
-      const fbErr = await fbRes.json().catch(() => null);
-      const fbMsg = fbErr?.error?.message || rawMsg;
-      if (fbMsg.includes('free tier is not available')) {
-        return {
-          valid: false,
-          message:
-            'Akses Free Tier tidak tersedia pada Project Google Cloud ini: ' +
-            '"The Gemini API free tier is not available for this project". ' +
-            'Solusi: Buat API Key baru di https://aistudio.google.com menggunakan akun personal @gmail.com.'
-        };
-      }
-      return { valid: false, message: `Google Gemini: ${fbMsg}` };
-    }
-
     return {
       valid: false,
-      message: `Google Gemini: ${rawMsg}`
+      message: `Google Gemini (${response.status}): ${rawMsg}`
     };
   } catch (err) {
     return {
@@ -744,7 +716,7 @@ KEMBALIKAN HANYA FORMAT JSON VALID berupa array of objects tanpa teks pembuka/pe
               ? r.steps
               : ['Siapkan dan olah seluruh bahan sesuai takaran.'],
           source: 'AI-Generated' as const,
-          engineName: 'Google Gemini 1.5 Flash',
+          engineName: 'Google Gemini Flash',
           imageUrl: sanitizeImageUrl(r.imageUrl)
         })
       );
