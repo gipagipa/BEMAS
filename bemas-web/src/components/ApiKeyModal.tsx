@@ -20,17 +20,26 @@ export const ApiKeyModal: React.FC<ApiKeyModalProps> = ({ isOpen, onClose }) => 
   if (!isOpen) return null;
 
   const handleTestKey = async () => {
+    console.log('[ApiKeyModal] ⚡ Tombol "Uji Validitas Kunci" diklik, apiKey length:', apiKey.trim().length);
+    if (!apiKey.trim()) {
+      setValidationResult({ valid: false, message: 'Kunci API kosong. Silakan masukkan kunci API Anda.' });
+      return;
+    }
     setValidationResult(null);
     setIsValidating(true);
     try {
+      console.log('[ApiKeyModal] Menjalankan validateGeminiApiKey...');
       const res = await validateGeminiApiKey(apiKey);
+      console.log('[ApiKeyModal] Hasil validasi diterima:', res);
       setValidationResult(res);
     } catch (err) {
+      console.error('[ApiKeyModal] Exception tak terduga:', err);
       setValidationResult({
         valid: false,
         message: err instanceof Error ? err.message : 'Gagal menghubungi server Google Gemini'
       });
     } finally {
+      console.log('[ApiKeyModal] Validasi selesai, menghentikan spinner.');
       setIsValidating(false);
     }
   };

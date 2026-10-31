@@ -520,7 +520,7 @@ export async function getAvailableGeminiModel(
 
 /**
  * Memvalidasi apakah Google Gemini API Key aktif dan dapat terhubung secara realtime
- * (Single clean request tanpa bruteforce loop)
+ * (Single clean request dengan timeout controller dan logging diagnostik lengkap)
  */
 export async function validateGeminiApiKey(
   apiKey: string
@@ -532,11 +532,25 @@ export async function validateGeminiApiKey(
 
   // Gunakan model Flash terkini yang direkomendasikan Google
   const targetModel = 'gemini-3.8-flash';
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${clean}`;
+  const encodedKey = encodeURIComponent(clean);
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${encodedKey}`;
+
+  console.info('[BEMAS API Validator] 🔍 Memulai uji API key...', {
+    targetModel,
+    keyPrefix: clean.substring(0, 6) + '...',
+    keyLength: clean.length
+  });
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => {
+    console.warn('[BEMAS API Validator] ⏱️ Timeout 10 detik tercapai, membatalkan request.');
+    controller.abort();
+  }, 10000);
 
   try {
     const response = await fetch(url, {
       method: 'POST',
+      signal: controller.signal,
       headers: {
         'Content-Type': 'application/json',
         'x-goog-api-key': clean
@@ -550,21 +564,24 @@ export async function validateGeminiApiKey(
       })
     });
 
+    clearTimeout(timeoutId);
+    console.info('[BEMAS API Validator] 📡 Respon diterima dari Google:', response.status, response.statusText);
+
     if (response.ok) {
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      if (reply) {
-        cachedWorkingModel = targetModel;
-        return {
-          valid: true,
-          message: `Koneksi berhasil! Kunci API aktif dan terhubung ke Google ${targetModel}.`,
-          model: targetModel
-        };
-      }
+      console.info('[BEMAS API Validator] ✅ Koneksi berhasil!', { targetModel, reply });
+      cachedWorkingModel = targetModel;
+      return {
+        valid: true,
+        message: `Koneksi berhasil! Kunci API aktif dan terhubung ke Google ${targetModel}.`,
+        model: targetModel
+      };
     }
 
     const errData = await response.json().catch(() => null);
     const rawMsg: string = errData?.error?.message || `HTTP ${response.status} (${response.statusText})`;
+    console.warn('[BEMAS API Validator] ⚠️ Server Google menolak permintaan:', response.status, rawMsg);
 
     // Analisis spesifik status error dari server Google untuk panduan langsung ke pengguna
     if (rawMsg.includes('free tier is not available')) {
@@ -590,6 +607,23 @@ export async function validateGeminiApiKey(
       message: `Google Gemini (${response.status}): ${rawMsg}`
     };
   } catch (err) {
+    clearTimeout(timeoutId);
+    console.error('[BEMAS API Validator] ❌ Error saat menghubungi server Google:', err);
+
+    if (err instanceof Error && (err.name === 'AbortError' || err.message?.includes('aborted'))) {
+      return {
+        valid: false,
+        message: 'Waktu permintaan habis (timeout 10 detik). Server Google tidak merespons. Periksa koneksi internet, VPN, atau ekstensi pemblokir iklan (adblocker/Brave Shields).'
+      };
+    }
+
+    if (err instanceof TypeError && err.message?.includes('Failed to fetch')) {
+      return {
+        valid: false,
+        message: 'Gagal mengirim permintaan jaringan (Failed to fetch). Kemungkinan penyebab: Ekstensi browser (uBlock, AdBlock, Privacy Badger, atau Brave Shields) memblokir domain generativelanguage.googleapis.com, atau koneksi terputus.'
+      };
+    }
+
     return {
       valid: false,
       message: `Gagal menghubungi server Google: ${err instanceof Error ? err.message : 'Koneksi internet bermasalah'}`
