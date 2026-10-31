@@ -517,6 +517,7 @@ export async function getAvailableGeminiModel(
 
 /**
  * Memvalidasi apakah Google Gemini API Key aktif dan dapat terhubung secara realtime
+ * (Single clean request tanpa bruteforce loop)
  */
 export async function validateGeminiApiKey(
   apiKey: string
@@ -526,83 +527,102 @@ export async function validateGeminiApiKey(
     return { valid: false, message: 'Kunci API kosong. Silakan masukkan kunci API Anda.' };
   }
 
-  // Ambil daftar model yang dilaporkan secara aktual oleh server Google untuk akun ini
-  const discovered = await fetchGoogleModelsList(clean);
+  // Pilih model target utama
+  const targetModel = 'gemini-2.5-flash';
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${clean}`;
 
-  // Kumpulkan semua kandidat model
-  const candidateModels = Array.from(
-    new Set([
-      ...discovered,
-      'gemini-2.5-flash',
-      'gemini-2.0-flash',
-      'gemini-2.0-flash-exp',
-      'gemini-1.5-flash-latest',
-      'gemini-1.5-flash-002',
-      'gemini-1.5-flash-001',
-      'gemini-1.5-flash',
-      'gemini-1.5-pro',
-      'gemini-pro'
-    ])
-  );
-
-  const versionsToTry = ['v1beta', 'v1'];
-  let lastErrorMsg = '';
-
-  for (const version of versionsToTry) {
-    for (const candidate of candidateModels) {
-      try {
-        const url = `https://generativelanguage.googleapis.com/${version}/models/${candidate}:generateContent?key=${clean}`;
-        const response = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'x-goog-api-key': clean
-          },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: 'Balas hanya satu kata: AKTIF' }] }],
-            generationConfig: {
-              maxOutputTokens: 10,
-              temperature: 0.1
-            }
-          })
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-          if (reply) {
-            cachedWorkingModel = candidate;
-            cachedWorkingVersion = version;
-            return {
-              valid: true,
-              message: `Koneksi berhasil! Kunci API aktif dan terhubung ke Google ${candidate} (${version}).`,
-              model: candidate
-            };
-          }
-        } else {
-          const errData = await response.json().catch(() => null);
-          lastErrorMsg = errData?.error?.message || `HTTP ${response.status} (${response.statusText})`;
-          // Jika kunci API salah (API_KEY_INVALID), jangan lanjutkan loop karena kunci tidak valid
-          if (
-            lastErrorMsg.includes('API_KEY_INVALID') ||
-            (response.status === 400 && lastErrorMsg.toLowerCase().includes('api key not valid'))
-          ) {
-            return {
-              valid: false,
-              message: `Google Gemini menolak kunci API: Kunci API tidak valid (${lastErrorMsg})`
-            };
-          }
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-goog-api-key': clean
+      },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: 'Balas hanya satu kata: AKTIF' }] }],
+        generationConfig: {
+          maxOutputTokens: 10,
+          temperature: 0.1
         }
-      } catch (err) {
-        lastErrorMsg = err instanceof Error ? err.message : 'Koneksi internet bermasalah';
+      })
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (reply) {
+        cachedWorkingModel = targetModel;
+        return {
+          valid: true,
+          message: `Koneksi berhasil! Kunci API aktif dan terhubung ke Google ${targetModel}.`,
+          model: targetModel
+        };
       }
     }
-  }
 
-  return {
-    valid: false,
-    message: `Google Gemini menolak kunci API: ${lastErrorMsg}`
-  };
+    const errData = await response.json().catch(() => null);
+    const rawMsg: string = errData?.error?.message || `HTTP ${response.status} (${response.statusText})`;
+
+    // Analisis spesifik error dari server Google untuk panduan langsung ke pengguna
+    if (rawMsg.includes('free tier is not available')) {
+      return {
+        valid: false,
+        message:
+          'Akses Free Tier tidak tersedia pada Project Google Cloud ini: ' +
+          '"The Gemini API free tier is not available for this project". ' +
+          'Penyebab umum: Akun Google Workspace / organisasi kampus membatasi akses gratis. ' +
+          'Solusi: Buat API Key baru di Google AI Studio (https://aistudio.google.com) menggunakan akun personal @gmail.com.'
+      };
+    }
+
+    if (rawMsg.includes('API_KEY_INVALID') || (response.status === 400 && rawMsg.toLowerCase().includes('api key not valid'))) {
+      return {
+        valid: false,
+        message: 'Kunci API tidak valid. Pastikan Anda menyalin seluruh string kunci dari Google AI Studio.'
+      };
+    }
+
+    if (rawMsg.includes('no longer available to new users') || rawMsg.includes('not found')) {
+      // Coba satu kali fallback ke gemini-1.5-flash
+      const fallbackModel = 'gemini-1.5-flash';
+      const fallbackUrl = `https://generativelanguage.googleapis.com/v1beta/models/${fallbackModel}:generateContent?key=${clean}`;
+      const fbRes = await fetch(fallbackUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': clean },
+        body: JSON.stringify({ contents: [{ parts: [{ text: 'AKTIF' }] }] })
+      });
+      if (fbRes.ok) {
+        cachedWorkingModel = fallbackModel;
+        return {
+          valid: true,
+          message: `Koneksi berhasil! Kunci API aktif dan terhubung ke Google ${fallbackModel}.`,
+          model: fallbackModel
+        };
+      }
+      const fbErr = await fbRes.json().catch(() => null);
+      const fbMsg = fbErr?.error?.message || rawMsg;
+      if (fbMsg.includes('free tier is not available')) {
+        return {
+          valid: false,
+          message:
+            'Akses Free Tier tidak tersedia pada Project Google Cloud ini: ' +
+            '"The Gemini API free tier is not available for this project". ' +
+            'Solusi: Buat API Key baru di https://aistudio.google.com menggunakan akun personal @gmail.com.'
+        };
+      }
+      return { valid: false, message: `Google Gemini: ${fbMsg}` };
+    }
+
+    return {
+      valid: false,
+      message: `Google Gemini: ${rawMsg}`
+    };
+  } catch (err) {
+    return {
+      valid: false,
+      message: `Gagal menghubungi server Google: ${err instanceof Error ? err.message : 'Koneksi internet bermasalah'}`
+    };
+  }
 }
 
 /**
