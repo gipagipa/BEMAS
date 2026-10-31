@@ -108,3 +108,13 @@ export interface FavoritePlace {
   savedAt: number;
 }
 
+export interface ChatMessage {
+  id: string;
+  sender: 'user' | 'agent';
+  text: string;
+  timestamp: string;
+  suggestions?: string[];
+  relatedRecipe?: Recipe;
+}
+
+

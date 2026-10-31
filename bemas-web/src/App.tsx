@@ -8,6 +8,7 @@ import { FavoritesPage } from './pages/FavoritesPage';
 import { RecipeSection } from './components/RecipeSection';
 import { MapSection } from './components/MapSection';
 import { ApiKeyModal } from './components/ApiKeyModal';
+import { FloatingChatbot } from './components/FloatingChatbot';
 import { storage } from './services/storage';
 import { User } from './types';
 import { ChefHat, MapPin, Home, LogIn, Heart } from 'lucide-react';
@@ -274,6 +275,13 @@ export function App() {
           <span>{currentUser ? 'Akun' : 'Masuk'}</span>
         </button>
       </nav>
+
+      {/* FLOATING ACTION BUTTON (FAB) & DEDICATED AGENT CHAT OVERLAY */}
+      <FloatingChatbot
+        currentUser={currentUser}
+        onNavigateToRecipe={() => setActiveTab('recipe')}
+        onNavigateToMap={() => setActiveTab('map')}
+      />
 
       {/* GEMINI API KEY MODAL */}
       <ApiKeyModal

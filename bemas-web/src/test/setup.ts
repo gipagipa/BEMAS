@@ -8,8 +8,12 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-// Mock window.scrollTo in jsdom
+// Mock window.scrollTo and scrollIntoView in jsdom
 Object.defineProperty(window, 'scrollTo', {
   value: vi.fn(),
   writable: true,
 });
+
+if (typeof window.HTMLElement.prototype.scrollIntoView !== 'function') {
+  window.HTMLElement.prototype.scrollIntoView = vi.fn();
+}
