@@ -5,7 +5,6 @@ import {
   Lightbulb,
   Sparkles,
   Heart,
-  ChefHat,
   Plus,
   MapPin,
   Clock,
@@ -207,31 +206,22 @@ export const RecipeSection: React.FC<RecipeSectionProps> = ({
       <div className="flex items-center gap-2 text-xs text-[#786C68] font-medium">
         <span>Beranda</span>
         <span className="text-[10px] text-[#786C68]">›</span>
-        <span className="text-[#FF5722] font-semibold">Rekomendasi Resep AI (Chatbot Interaktif)</span>
+        <span className="text-[#FF5722] font-semibold">Rekomendasi Resep Berdasarkan Bahan (UC-03)</span>
       </div>
 
-      {/* CHATBOT TOP BAR */}
+      {/* HEADER HERO */}
       <div className="bg-white rounded-3xl p-5 sm:p-6 border border-[#F0E5E1] shadow-2xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3.5">
-          <div className="relative">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#FF5722] to-[#FF8A65] flex items-center justify-center text-white shadow-md shadow-orange-500/20">
-              <ChefHat className="w-6 h-6" />
-            </div>
-            <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-500 border-2 border-white shadow-xs"></span>
+        <div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#FFEBE6] text-[#FF5722] text-xs font-bold w-fit mb-1.5">
+            <span>🍳</span>
+            <span>Rekomendasi Resep Berdasarkan Bahan (UC-03)</span>
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h2 className="text-lg sm:text-xl font-black text-[#1E1715] tracking-tight">
-                Chef AI BEMAS
-              </h2>
-              <span className="px-2 py-0.5 bg-[#FFEBE6] text-[#FF5722] text-[10px] font-extrabold rounded-full uppercase">
-                Aktif
-              </span>
-            </div>
-            <p className="text-xs text-[#786C68] mt-0.5">
-              Asisten Koki Cerdas • Konsultasi Bahan &amp; Resep Masakan Interaktif
-            </p>
-          </div>
+          <h1 className="text-xl sm:text-2xl font-black text-[#1E1715] tracking-tight">
+            Punya bahan apa di kulkas hari ini?
+          </h1>
+          <p className="text-xs text-[#786C68] mt-1">
+            Masukkan daftar bahan makanan yang Anda miliki untuk meracik resep lezat dengan takaran pasti &amp; nilai gizi.
+          </p>
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
@@ -258,145 +248,77 @@ export const RecipeSection: React.FC<RecipeSectionProps> = ({
         </div>
       </div>
 
-      {/* CHAT CONVERSATION STREAM CONTAINER */}
-      <div className="space-y-6">
-
-        {/* 1. CHAT MESSAGE: ASISTEN AI (SAMBUTAN) */}
-        <div className="flex items-start gap-3 sm:gap-4 max-w-3xl">
-          <div className="w-9 h-9 rounded-2xl bg-[#FF5722] text-white flex items-center justify-center shrink-0 shadow-sm mt-1">
-            <ChefHat className="w-5 h-5" />
+      {/* INPUT & ACTIVE INGREDIENTS CONSOLE */}
+      <div className="bg-white rounded-3xl p-5 sm:p-7 border border-[#F0E5E1] shadow-2xs space-y-4">
+        {/* Error Message Alert */}
+        {errorMessage && (
+          <div
+            role="alert"
+            className="p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2.5 animate-shake"
+          >
+            <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+            <span>{errorMessage}</span>
           </div>
-          <div className="bg-white rounded-3xl rounded-tl-sm p-4 sm:p-5 border border-[#F0E5E1] shadow-2xs space-y-2 text-xs sm:text-sm text-[#1E1715] leading-relaxed">
-            <p className="font-semibold text-[#FF5722]">
-              Halo! Saya Asisten Koki AI BEMAS 👨‍🍳✨
-            </p>
-            <p className="text-[#5E5856]">
-              Punya bahan makanan yang tersisa di dapur atau kulkas? Beri tahu saya bahan-bahan yang kamu miliki, dan saya akan racikkan rekomendasi resep masakan yang lezat lengkap dengan <strong>takaran bahan yang pasti</strong>, <strong>langkah memasak</strong>, hingga rincian <strong>nilai gizinya</strong>.
-            </p>
+        )}
+
+        {/* Input & Action Buttons */}
+        <div className="flex flex-col sm:flex-row items-center gap-2.5">
+          <div className="relative flex-1 w-full">
+            <input
+              type="text"
+              aria-label="Input bahan makanan"
+              value={inputVal}
+              onChange={e => setInputVal(e.target.value)}
+              onKeyDown={e => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddIngredient(inputVal);
+                }
+              }}
+              placeholder="Ketik nama bahan (contoh: telur, tahu, wortel, tempe)..."
+              className="w-full bg-[#FFF8F6] border border-[#F0E5E1] rounded-2xl px-4 py-3 text-xs sm:text-sm text-[#1E1715] placeholder-[#786C68] focus:outline-hidden focus:border-[#FF5722] focus:bg-white font-medium transition-all"
+            />
           </div>
-        </div>
 
-        {/* 2. CHAT MESSAGE: PENGGUNA (DAFTAR BAHAN & INPUT CONSOLE) */}
-        <div className="flex flex-col items-end gap-2 ml-auto max-w-3xl">
-          <div className="flex items-start gap-3 justify-end w-full">
-            <div className="bg-[#FFEBE6] border border-[#FFD8CF] rounded-3xl rounded-tr-sm p-4 sm:p-5 text-right space-y-2 max-w-2xl shadow-2xs">
-              <span className="text-[11px] font-bold text-[#FF5722] block uppercase tracking-wider">
-                Bahan Makanan di Dapur Saya:
-              </span>
-
-              {activeIngredients.length === 0 ? (
-                <p className="text-xs text-[#786C68] italic">
-                  Belum ada bahan yang dipilih. Silakan ketik dan tambahkan bahan di bawah ini.
-                </p>
-              ) : (
-                <div className="flex flex-wrap justify-end gap-1.5 pt-1">
-                  {activeIngredients.map(item => (
-                    <span
-                      key={item}
-                      className="inline-flex items-center gap-1.5 bg-white border border-[#FFD8CF] px-3 py-1 rounded-full text-xs font-bold text-[#1E1715] shadow-2xs"
-                    >
-                      <span>{item}</span>
-                      <button
-                        type="button"
-                        aria-label={`Hapus ${item}`}
-                        onClick={() => handleRemoveIngredient(item)}
-                        className="text-[#786C68] hover:text-red-500 cursor-pointer text-xs font-black ml-0.5"
-                      >
-                        ✕
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <div className="w-9 h-9 rounded-2xl bg-[#1E1715] text-white flex items-center justify-center shrink-0 shadow-sm mt-1 text-xs font-bold">
-              {currentUser ? Array.from(currentUser.name || 'U')[0]?.toUpperCase() : '👤'}
-            </div>
-          </div>
-        </div>
-
-        {/* INTERACTIVE CHAT INPUT CONSOLE */}
-        <div className="bg-white rounded-3xl p-4 sm:p-6 border border-[#F0E5E1] shadow-2xs space-y-4">
-          {/* Error Message Alert */}
-          {errorMessage && (
-            <div
-              role="alert"
-              className="p-3.5 rounded-2xl bg-red-50 border border-red-200 text-red-700 text-xs font-semibold flex items-center gap-2.5 animate-shake"
+          <div className="flex items-center gap-2 w-full sm:w-auto">
+            <button
+              type="button"
+              onClick={() => handleAddIngredient(inputVal)}
+              className="px-4 py-3 bg-[#FFF1ED] hover:bg-orange-100 text-[#FF5722] border border-[#FFD8CF] rounded-2xl text-xs font-bold transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer"
             >
-              <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
-              <span>{errorMessage}</span>
-            </div>
-          )}
+              <Plus className="w-4 h-4" />
+              <span>+ Tambah</span>
+            </button>
 
-          {/* Input & Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-center gap-2.5">
-            <div className="relative flex-1 w-full">
-              <input
-                type="text"
-                aria-label="Input bahan makanan"
-                value={inputVal}
-                onChange={e => setInputVal(e.target.value)}
-                onKeyDown={e => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleAddIngredient(inputVal);
-                  }
-                }}
-                placeholder="Ketik nama bahan (contoh: telur, tahu, wortel, tempe)..."
-                className="w-full bg-[#FFF8F6] border border-[#F0E5E1] rounded-2xl px-4 py-3 text-xs sm:text-sm text-[#1E1715] placeholder-[#786C68] focus:outline-hidden focus:border-[#FF5722] focus:bg-white font-medium transition-all"
-              />
-            </div>
-
-            <div className="flex items-center gap-2 w-full sm:w-auto">
-              <button
-                type="button"
-                onClick={() => handleAddIngredient(inputVal)}
-                className="px-4 py-3 bg-[#FFF1ED] hover:bg-orange-100 text-[#FF5722] border border-[#FFD8CF] rounded-2xl text-xs font-bold transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer"
-              >
-                <Plus className="w-4 h-4" />
-                <span>+ Tambah</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleGenerate}
-                disabled={loading}
-                aria-label="Cari Resep / Rekomendasikan (Racik Resep AI)"
-                title="Cari Resep / Rekomendasikan (SRS UC-03)"
-                className="flex-1 sm:flex-none px-5 py-3 bg-[#FF5722] hover:bg-[#E64A19] text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-colors shrink-0 disabled:opacity-50 cursor-pointer"
-              >
-                {loading ? (
-                  <>
-                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Meracik Resep...</span>
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4" />
-                    <span>Cari Resep / Racik Resep AI</span>
-                  </>
-                )}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleGenerate}
+              disabled={loading}
+              aria-label="Cari Resep / Rekomendasikan (Racik Resep AI)"
+              title="Cari Resep / Rekomendasikan (SRS UC-03)"
+              className="flex-1 sm:flex-none px-5 py-3 bg-[#FF5722] hover:bg-[#E64A19] text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-colors shrink-0 disabled:opacity-50 cursor-pointer"
+            >
+              {loading ? (
+                <>
+                  <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  <span>Meracik Resep...</span>
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  <span>Cari Resep / Racik Resep AI</span>
+                </>
+              )}
+            </button>
           </div>
+        </div>
 
-          {/* Quick Suggestions & Clear Button */}
-          <div className="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-[#F0E5E1]/60 text-xs">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-[#786C68] font-medium text-[11px] mr-1">Saran cepat:</span>
-              {quickSuggestions.map(sug => (
-                <button
-                  key={sug}
-                  type="button"
-                  onClick={() => handleAddIngredient(sug)}
-                  className="px-2.5 py-1 bg-white hover:bg-orange-50 border border-[#F0E5E1] rounded-full text-[#1E1715] text-[11px] font-medium cursor-pointer transition-colors"
-                >
-                  + {sug}
-                </button>
-              ))}
-            </div>
-
+        {/* Active Ingredients Chips List */}
+        <div className="pt-2 border-t border-[#F0E5E1]/60">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-bold text-[#786C68] uppercase tracking-wider">
+              Bahan di Dapur Anda ({activeIngredients.length} Bahan)
+            </span>
             {activeIngredients.length > 0 && (
               <button
                 type="button"
@@ -409,58 +331,82 @@ export const RecipeSection: React.FC<RecipeSectionProps> = ({
             )}
           </div>
 
-          {/* Category Filter Pills */}
-          <div className="flex items-center gap-2 overflow-x-auto pt-2 no-scrollbar border-t border-[#F0E5E1]/60">
-            {categories.map(cat => (
-              <button
-                key={cat}
-                type="button"
-                onClick={() => setActiveCategory(cat)}
-                className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
-                  activeCategory === cat
-                    ? 'bg-[#FF5722] text-white shadow-2xs'
-                    : 'bg-[#FFF8F6] hover:bg-orange-50 border border-[#F0E5E1] text-[#786C68] hover:text-[#1E1715]'
-                }`}
-              >
-                {cat}
-              </button>
-            ))}
-          </div>
+          {activeIngredients.length === 0 ? (
+            <p className="text-xs text-[#786C68] italic py-1">
+              Belum ada bahan yang dipilih. Silakan ketik dan tambahkan bahan di atas.
+            </p>
+          ) : (
+            <div className="flex flex-wrap gap-2 pt-1">
+              {activeIngredients.map(item => (
+                <span
+                  key={item}
+                  className="inline-flex items-center gap-1.5 bg-[#FFF1ED] border border-[#FFD8CF] px-3.5 py-1.5 rounded-full text-xs font-bold text-[#1E1715] shadow-2xs"
+                >
+                  <span>{item}</span>
+                  <button
+                    type="button"
+                    aria-label={`Hapus ${item}`}
+                    onClick={() => handleRemoveIngredient(item)}
+                    className="text-[#786C68] hover:text-red-500 cursor-pointer text-xs font-black ml-0.5"
+                  >
+                    ✕
+                  </button>
+                </span>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* 3. CHAT MESSAGE: ASISTEN AI (HASIL REKOMENDASI & DETAIL RESEP) */}
-        {!featuredRecipe ? (
-          <div className="bg-white rounded-3xl p-8 text-center border border-[#F0E5E1] space-y-3">
-            <p className="text-sm font-bold text-[#1E1715]">
-              Tidak ada resep yang cocok pada kategori "{activeCategory}".
-            </p>
+        {/* Quick Suggestions */}
+        <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-[#F0E5E1]/60 text-xs">
+          <span className="text-[#786C68] font-medium text-[11px] mr-1">Saran cepat:</span>
+          {quickSuggestions.map(sug => (
             <button
+              key={sug}
               type="button"
-              onClick={() => setActiveCategory('Semua Resep')}
-              className="px-4 py-2 rounded-xl bg-[#FF5722] text-white text-xs font-bold"
+              onClick={() => handleAddIngredient(sug)}
+              className="px-2.5 py-1 bg-white hover:bg-orange-50 border border-[#F0E5E1] rounded-full text-[#1E1715] text-[11px] font-medium cursor-pointer transition-colors"
             >
-              Tampilkan Semua Resep
+              + {sug}
             </button>
-          </div>
-        ) : (
-          <div className="flex items-start gap-3 sm:gap-4 w-full">
-            <div className="w-9 h-9 rounded-2xl bg-[#FF5722] text-white flex items-center justify-center shrink-0 shadow-sm mt-1">
-              <ChefHat className="w-5 h-5" />
-            </div>
+          ))}
+        </div>
 
-            <div className="flex-1 space-y-6">
-              {/* Message Header Bubble */}
-              <div className="bg-white rounded-3xl rounded-tl-sm p-4 sm:p-5 border border-[#F0E5E1] shadow-2xs">
-                <p className="text-xs sm:text-sm font-bold text-[#1E1715]">
-                  Berdasarkan bahan dapurmu, ini rekomendasi resep olahan terbaik yang siap kamu masak! 🍳✨
-                </p>
-                <p className="text-xs text-[#786C68] mt-1">
-                  Resep disajikan lengkap dengan takaran bahan yang rinci, urutan langkah memasak, dan informasi nilai gizi.
-                </p>
-              </div>
+        {/* Category Filter Pills */}
+        <div className="flex items-center gap-2 overflow-x-auto pt-2 no-scrollbar border-t border-[#F0E5E1]/60">
+          {categories.map(cat => (
+            <button
+              key={cat}
+              type="button"
+              onClick={() => setActiveCategory(cat)}
+              className={`px-3.5 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors cursor-pointer ${
+                activeCategory === cat
+                  ? 'bg-[#FF5722] text-white shadow-2xs'
+                  : 'bg-[#FFF8F6] hover:bg-orange-50 border border-[#F0E5E1] text-[#786C68] hover:text-[#1E1715]'
+              }`}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
 
-              {/* MAIN SINGLE-COLUMN RECIPE DETAIL CARD */}
-              <div className="bg-white rounded-3xl border border-[#F0E5E1] shadow-sm overflow-hidden space-y-6">
+      {/* SINGLE-COLUMN RECIPE DETAIL CARD */}
+      {!featuredRecipe ? (
+        <div className="bg-white rounded-3xl p-8 text-center border border-[#F0E5E1] space-y-3">
+          <p className="text-sm font-bold text-[#1E1715]">
+            Tidak ada resep yang cocok pada kategori "{activeCategory}".
+          </p>
+          <button
+            type="button"
+            onClick={() => setActiveCategory('Semua Resep')}
+            className="px-4 py-2 rounded-xl bg-[#FF5722] text-white text-xs font-bold cursor-pointer"
+          >
+            Tampilkan Semua Resep
+          </button>
+        </div>
+      ) : (
+        <div className="bg-white rounded-3xl border border-[#F0E5E1] shadow-sm overflow-hidden space-y-6">
 
                 {/* Hero Image & Headline */}
                 <div className="relative h-64 sm:h-80 w-full overflow-hidden">
@@ -804,15 +750,9 @@ export const RecipeSection: React.FC<RecipeSectionProps> = ({
                       </div>
                     )}
                   </div>
-
                 </div>
               </div>
-
-            </div>
-          </div>
-        )}
-
-      </div>
+            )}
     </div>
   );
 };
