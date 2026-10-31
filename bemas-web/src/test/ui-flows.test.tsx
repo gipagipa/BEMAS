@@ -126,8 +126,8 @@ describe('SDD & TDD Suite 4: Integrasi Antarmuka & Edge Case Flow (UC-01 s.d. UC
     fireEvent.change(input, { target: { value: 'Telur Ayam, Wortel' } });
     fireEvent.click(screen.getByRole('button', { name: /\+ Tambah/i }));
 
-    expect(screen.getByText('Telur Ayam')).toBeInTheDocument();
-    expect(screen.getByText('Wortel')).toBeInTheDocument();
+    expect(screen.getAllByText('Telur Ayam')[0]).toBeInTheDocument();
+    expect(screen.getAllByText('Wortel')[0]).toBeInTheDocument();
 
     // 3. Coba tambahkan bahan duplikat (case-insensitive) -> Harus ditolak dengan alert
     fireEvent.change(input, { target: { value: 'telur ayam' } });
@@ -147,6 +147,11 @@ describe('SDD & TDD Suite 4: Integrasi Antarmuka & Edge Case Flow (UC-01 s.d. UC
     // 5. Uji perpindahan tab kategori resep
     fireEvent.click(screen.getByRole('button', { name: /🥗 Sehat & Sayur/i }));
     expect(screen.getByText(/Sup Bening Segar Telur Wortel/i)).toBeInTheDocument();
+
+    // 6. Verifikasi elemen Chatbot: Takaran Pasti, Nilai Gizi, dan Rekomendasi Resep Lainnya
+    expect(screen.getByRole('heading', { name: /Detail Bahan Masakan & Takaran Pasti/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Informasi Nilai Gizi/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Rekomendasi Resep Lainnya dari Bahan Ini/i })).toBeInTheDocument();
   });
 
   it('Flow UC-04 (MapSection): mencegah kebocoran selectedPlace saat filter berubah & menangani penolakan izin GPS (Exceptional Flow 3a)', () => {

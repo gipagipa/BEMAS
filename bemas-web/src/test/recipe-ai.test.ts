@@ -170,5 +170,22 @@ describe('SDD & TDD Suite 2: Rekomendasi Resep Berbasis Bahan AI (FR-03 / UC-03)
       expect(sehat.length).toBeGreaterThan(0);
       expect(sehat.every(r => r.categoryTags?.includes('🥗 Sehat & Sayur'))).toBe(true);
     });
+
+    it('Chatbot Redesign: harus menjamin setiap resep memiliki detail takaran bahan rinci dan informasi nilai gizi', () => {
+      CURATED_RECIPES.forEach(r => {
+        expect(r.detailedIngredients).toBeDefined();
+        expect(r.detailedIngredients!.length).toBeGreaterThan(0);
+        r.detailedIngredients!.forEach(ing => {
+          expect(ing.name).toBeTruthy();
+          expect(ing.amount).toBeTruthy();
+        });
+
+        expect(r.nutritionFacts).toBeDefined();
+        expect(r.nutritionFacts!.calories).toBeGreaterThan(0);
+        expect(r.nutritionFacts!.protein).toBeTruthy();
+        expect(r.nutritionFacts!.carbs).toBeTruthy();
+        expect(r.nutritionFacts!.fat).toBeTruthy();
+      });
+    });
   });
 });

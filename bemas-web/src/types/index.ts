@@ -55,12 +55,29 @@ export type RecipeCategoryTag =
   | '💰 Hemat / Tanggal Tua'
   | '🥗 Sehat & Sayur';
 
+export interface DetailedIngredient {
+  name: string;
+  amount: string;
+  notes?: string;
+  isMain?: boolean;
+}
+
+export interface NutritionFacts {
+  calories: number;
+  protein: string;
+  carbs: string;
+  fat: string;
+  fiber?: string;
+}
+
 export interface Recipe {
   id: string;
   title: string;
   description: string;
   matchedIngredients: string[];
   additionalIngredients: string[];
+  detailedIngredients?: DetailedIngredient[];
+  nutritionFacts?: NutritionFacts;
   prepTime: string;
   difficulty: 'Mudah' | 'Sedang' | 'Sulit';
   servings: number;

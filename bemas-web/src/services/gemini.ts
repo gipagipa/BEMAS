@@ -20,6 +20,23 @@ export const CURATED_RECIPES: Recipe[] = [
       'Hidangan comfort food khas rumahan yang hangat dan ramah anak. Tahu sutra/putih dipotong dadu lalu ditumis harum bersama bawang putih, dituang telur kocok orak-arik lembut berbalut kecap manis gurih.',
     matchedIngredients: ['tahu', 'telur', 'bawang putih', 'kecap'],
     additionalIngredients: ['daun bawang', 'garam & merica', 'minyak wijen'],
+    detailedIngredients: [
+      { name: 'Tahu Putih Sutra', amount: '4 buah kotak (potong dadu 2 cm)', isMain: true },
+      { name: 'Telur Ayam', amount: '2 butir (kocok lepas)', isMain: true },
+      { name: 'Bawang Putih', amount: '3 siung (cincang halus)', isMain: false },
+      { name: 'Kecap Manis Legit', amount: '2 sendok makan', isMain: false },
+      { name: 'Saus Tiram', amount: '1 sendok makan', isMain: false },
+      { name: 'Daun Bawang', amount: '1 batang (iris tipis)', isMain: false },
+      { name: 'Minyak Wijen / Goreng', amount: '1.5 sendok makan', isMain: false },
+      { name: 'Garam & Merica Bubuk', amount: '1/2 sendok teh / secukupnya', isMain: false }
+    ],
+    nutritionFacts: {
+      calories: 240,
+      protein: '14 g',
+      carbs: '12 g',
+      fat: '16 g',
+      fiber: '2.5 g'
+    },
     prepTime: '15 Menit',
     difficulty: 'Mudah',
     servings: 2,
@@ -51,6 +68,23 @@ export const CURATED_RECIPES: Recipe[] = [
       'Kuah kaldu bening ringan kaya vitamin dan serat alami, sangat pas disantap hangat saat cuaca dingin atau untuk pemulihan stamina.',
     matchedIngredients: ['telur', 'wortel', 'bawang'],
     additionalIngredients: ['daun seledri', 'kaldu ayam', 'bawang goreng'],
+    detailedIngredients: [
+      { name: 'Wortel Segar', amount: '2 buah (kupas dan iris bulat 0.5 cm)', isMain: true },
+      { name: 'Telur Ayam', amount: '2 butir (kocok lepas)', isMain: true },
+      { name: 'Air Kaldu Ayam / Air Bersih', amount: '600 ml', isMain: false },
+      { name: 'Bawang Putih', amount: '2 siung (memarkan)', isMain: false },
+      { name: 'Daun Seledri', amount: '2 batang (iris halus)', isMain: false },
+      { name: 'Kaldu Jamur / Ayam', amount: '1 sendok teh', isMain: false },
+      { name: 'Garam & Lada Bubuk', amount: '1/2 sendok teh', isMain: false },
+      { name: 'Bawang Merah Goreng', amount: '1 sendok makan (taburan akhir)', isMain: false }
+    ],
+    nutritionFacts: {
+      calories: 180,
+      protein: '11 g',
+      carbs: '9 g',
+      fat: '10 g',
+      fiber: '3.2 g'
+    },
     prepTime: '15 Menit',
     difficulty: 'Mudah',
     servings: 3,
@@ -82,6 +116,23 @@ export const CURATED_RECIPES: Recipe[] = [
       'Perpaduan buncis, wortel, dan telur orak-arik renyah kaya gizi dengan bumbu gurih yang sedap untuk sarapan atau bekal makan siang.',
     matchedIngredients: ['telur', 'buncis', 'wortel', 'bawang'],
     additionalIngredients: ['cabai merah', 'saus tiram', 'minyak kelapa'],
+    detailedIngredients: [
+      { name: 'Buncis Muda', amount: '100 gram (siangi & iris serong tipis)', isMain: true },
+      { name: 'Wortel Segar', amount: '1 buah (kupas & potong korek api)', isMain: true },
+      { name: 'Telur Ayam', amount: '2 butir (kocok lepas)', isMain: true },
+      { name: 'Bawang Merah', amount: '3 butir (iris tipis)', isMain: false },
+      { name: 'Bawang Putih', amount: '2 siung (cincang kasar)', isMain: false },
+      { name: 'Saus Tiram', amount: '1 sendok makan', isMain: false },
+      { name: 'Kecap Asin', amount: '1/2 sendok teh', isMain: false },
+      { name: 'Minyak Goreng / Kelapa', amount: '1.5 sendok makan', isMain: false }
+    ],
+    nutritionFacts: {
+      calories: 210,
+      protein: '12 g',
+      carbs: '10 g',
+      fat: '14 g',
+      fiber: '4.1 g'
+    },
     prepTime: '15 Menit',
     difficulty: 'Mudah',
     servings: 3,
@@ -113,6 +164,72 @@ export const CURATED_RECIPES: Recipe[] = [
  */
 export function sanitizeIngredient(raw: string): string {
   return sanitizeText(raw);
+}
+
+/**
+ * Memastikan setiap objek resep memiliki daftar takaran bahan yang rinci (Detailed Ingredients)
+ * dan Informasi Nilai Gizi yang jelas (Nutrition Facts).
+ */
+export function ensureRecipeDetails(r: Recipe): Recipe {
+  const calories = r.caloriesApprox || 220;
+  const nutritionFacts = r.nutritionFacts || {
+    calories,
+    protein: `${Math.round(calories * 0.055)} g`,
+    carbs: `${Math.round(calories * 0.065)} g`,
+    fat: `${Math.round(calories * 0.045)} g`,
+    fiber: '3.0 g'
+  };
+
+  let detailedIngredients = r.detailedIngredients;
+  if (!detailedIngredients || detailedIngredients.length === 0) {
+    const matched = Array.isArray(r.matchedIngredients) ? r.matchedIngredients : [];
+    const additional = Array.isArray(r.additionalIngredients) ? r.additionalIngredients : [];
+
+    const getMeasurement = (name: string, isMain: boolean): string => {
+      const lower = name.toLowerCase();
+      if (lower.includes('telur')) return '2-3 butir (kocok lepas)';
+      if (lower.includes('tahu')) return '4 kotak / 1 blok (potong dadu 2 cm)';
+      if (lower.includes('tempe')) return '1 papan / 200 g (potong dadu/korek)';
+      if (lower.includes('ayam')) return '250 g (potong dadu / fillet)';
+      if (lower.includes('ikan') || lower.includes('teri')) return '200 g (siangi bersih)';
+      if (lower.includes('udang') || lower.includes('cumi')) return '150 g (kupas bersih)';
+      if (lower.includes('wortel')) return '1-2 buah (iris tipis / korek api)';
+      if (lower.includes('buncis')) return '100 g (iris serong)';
+      if (lower.includes('kangkung') || lower.includes('bayam')) return '1 ikat segar (petik daun)';
+      if (lower.includes('bawang putih')) return '3 siung (cincang halus)';
+      if (lower.includes('bawang merah')) return '4 butir (iris tipis)';
+      if (lower.includes('bawang bombay')) return '1/2 buah (iris memanjang)';
+      if (lower.includes('daun bawang')) return '1 batang (iris halus)';
+      if (lower.includes('cabai') || lower.includes('cabe')) return '5-8 buah (iris serong / ulek kasar)';
+      if (lower.includes('kecap manis')) return '2 sendok makan';
+      if (lower.includes('saus tiram')) return '1 sendok makan';
+      if (lower.includes('minyak')) return '2 sendok makan untuk menumis';
+      if (lower.includes('garam') || lower.includes('merica') || lower.includes('lada')) return '1/2 sendok teh / secukupnya';
+      if (lower.includes('kaldu')) return '1 sendok teh';
+      if (lower.includes('nasi')) return '2 piring nasi putih dingin';
+      if (lower.includes('mie') || lower.includes('bihun')) return '1 bungkus (rebus setengah matang)';
+      return isMain ? '200 gram / takaran utama' : 'secukupnya (sesuai selera)';
+    };
+
+    detailedIngredients = [
+      ...matched.map(m => ({
+        name: m,
+        amount: getMeasurement(m, true),
+        isMain: true
+      })),
+      ...additional.map(a => ({
+        name: a,
+        amount: getMeasurement(a, false),
+        isMain: false
+      }))
+    ];
+  }
+
+  return {
+    ...r,
+    detailedIngredients,
+    nutritionFacts
+  };
 }
 
 /**
@@ -392,24 +509,26 @@ KEMBALIKAN HANYA FORMAT JSON VALID berupa array of objects tanpa teks pembuka/pe
         throw new Error('Format JSON resep tidak valid');
       }
 
-      const normalizedRecipes: Recipe[] = parsed.map((r, i) => ({
-        ...r,
-        id: `rec-ai-${Date.now()}-${i}`,
-        matchedIngredients:
-          Array.isArray(r.matchedIngredients) && r.matchedIngredients.length > 0
-            ? r.matchedIngredients
-            : validIngredients,
-        additionalIngredients: Array.isArray(r.additionalIngredients)
-          ? r.additionalIngredients
-          : [],
-        steps:
-          Array.isArray(r.steps) && r.steps.length > 0
-            ? r.steps
-            : ['Siapkan dan olah seluruh bahan sesuai takaran.'],
-        source: 'AI-Generated' as const,
-        engineName: 'Google Gemini 1.5 Flash',
-        imageUrl: sanitizeImageUrl(r.imageUrl)
-      }));
+      const normalizedRecipes: Recipe[] = parsed.map((r, i) =>
+        ensureRecipeDetails({
+          ...r,
+          id: `rec-ai-${Date.now()}-${i}`,
+          matchedIngredients:
+            Array.isArray(r.matchedIngredients) && r.matchedIngredients.length > 0
+              ? r.matchedIngredients
+              : validIngredients,
+          additionalIngredients: Array.isArray(r.additionalIngredients)
+            ? r.additionalIngredients
+            : [],
+          steps:
+            Array.isArray(r.steps) && r.steps.length > 0
+              ? r.steps
+              : ['Siapkan dan olah seluruh bahan sesuai takaran.'],
+          source: 'AI-Generated' as const,
+          engineName: 'Google Gemini 1.5 Flash',
+          imageUrl: sanitizeImageUrl(r.imageUrl)
+        })
+      );
 
       saveCachedRecipes(cacheKey, normalizedRecipes);
       return normalizedRecipes;
@@ -423,7 +542,8 @@ KEMBALIKAN HANYA FORMAT JSON VALID berupa array of objects tanpa teks pembuka/pe
   }
 
   // BEMAS Generative Culinary AI Engine (Offline Generative Synthesizer)
-  const fallbackResult = generateDynamicRecipes(validIngredients, preferences);
+  const rawFallback = generateDynamicRecipes(validIngredients, preferences);
+  const fallbackResult = rawFallback.map(ensureRecipeDetails);
   saveCachedRecipes(cacheKey, fallbackResult);
   return fallbackResult;
 }
