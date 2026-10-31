@@ -75,14 +75,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {/* Account Session Action */}
       <div className="pt-4 border-t border-[#F0E5E1]/60">
         {currentUser ? (
-          <button
-            type="button"
-            onClick={onLogout}
-            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-red-600 hover:bg-red-50 font-semibold transition-colors"
-          >
-            <LogOut className="w-4 h-4" />
-            <span>Keluar Akun</span>
-          </button>
+          <div className="space-y-2">
+            <div className="px-3 py-2 rounded-xl bg-[#FFF8F6] border border-[#F0E5E1] text-[11px]">
+              <div className="font-bold text-[#1E1715] truncate">{currentUser.name}</div>
+              <div className="text-[10px] text-[#FF5722] font-semibold uppercase">
+                {currentUser.role === 'admin' ? 'Admin' : currentUser.role === 'mitra' ? 'Mitra Kuliner' : 'User'}
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={onLogout}
+              className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs text-red-600 hover:bg-red-50 font-semibold transition-colors cursor-pointer"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Keluar Akun</span>
+            </button>
+          </div>
         ) : (
           <button
             type="button"

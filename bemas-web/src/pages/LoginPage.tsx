@@ -9,6 +9,7 @@ interface LoginPageProps {
   onNavigateToHome?: () => void;
   initialEmail?: string;
   registrationSuccessNotice?: boolean;
+  authNotice?: string;
 }
 
 export const LoginPage: React.FC<LoginPageProps> = ({
@@ -16,7 +17,8 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   onNavigateToRegister,
   onNavigateToHome,
   initialEmail = '',
-  registrationSuccessNotice = false
+  registrationSuccessNotice = false,
+  authNotice
 }) => {
   const [email, setEmail] = useState(initialEmail || DEFAULT_USERS[0].email);
   const [password, setPassword] = useState(initialEmail ? '' : DEFAULT_DEMO_PASSWORD);
@@ -114,6 +116,17 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 >
                   <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
                   <span>Pendaftaran berhasil! Silakan masuk menggunakan akun yang baru Anda daftarkan.</span>
+                </div>
+              )}
+
+              {/* Peringatan Diperlukan Login (SRS UC-05 Langkah 2a & UC-06 Langkah 3a) */}
+              {authNotice && (
+                <div
+                  role="status"
+                  className="mb-4 p-3.5 rounded-2xl bg-amber-50 border border-amber-200 text-amber-900 text-xs font-semibold flex items-center gap-2.5 shadow-2xs"
+                >
+                  <Info className="w-4 h-4 shrink-0 text-amber-600" />
+                  <span>{authNotice}</span>
                 </div>
               )}
 

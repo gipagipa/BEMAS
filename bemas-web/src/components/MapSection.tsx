@@ -178,19 +178,43 @@ export const MapSection: React.FC<MapSectionProps> = ({
           place.lng
         );
 
+        const isFav = favoritePlaceIds.includes(place.id);
+        const popupContent = `
+          <div style="font-family: inherit; font-size: 13px; max-width: 240px; padding: 2px;">
+            <b style="font-size: 14px; color: #1E1715;">${escapeHtml(place.name)}</b>
+            <div style="color: #FF5722; font-size: 12px; margin-top: 2px;">★ ${Number(place.rating) || 0} (${Number(place.reviewsCount) || 0} ulasan) • ${dist} km</div>
+            <div style="color: #786C68; font-size: 11px; margin-top: 4px;">${escapeHtml(place.address)}</div>
+            <div style="margin-top: 6px; font-weight: 600; color: #FF5722;">Menu Unggulan: ${escapeHtml(place.featuredMenu)}</div>
+            <div style="margin-top: 8px; padding-top: 6px; border-top: 1px solid #F0E5E1; display: flex; align-items: center; justify-content: space-between;">
+              <button
+                id="btn-fav-popup-${escapeHtml(place.id)}"
+                type="button"
+                title="${isFav ? 'Hapus Lokasi Favorit' : 'Simpan Tempat Favorit'}"
+                style="padding: 5px 12px; border-radius: 9999px; font-size: 11px; font-weight: 700; cursor: pointer; border: 1px solid ${isFav ? '#FFD8CF' : '#FF5722'}; background: ${isFav ? '#FFF1ED' : '#FF5722'}; color: ${isFav ? '#E11D48' : '#ffffff'}; transition: all 0.2s;"
+              >
+                ${isFav ? '❤️ Favorit' : '🤍 Simpan Tempat Favorit'}
+              </button>
+            </div>
+          </div>
+        `;
+
         const marker = L.marker([place.lat, place.lng], { icon: placeIcon })
           .addTo(map)
-          .bindPopup(`
-            <div style="font-family: inherit; font-size: 13px; max-width: 230px;">
-              <b style="font-size: 14px; color: #1E1715;">${escapeHtml(place.name)}</b>
-              <div style="color: #FF5722; font-size: 12px; margin-top: 2px;">★ ${Number(place.rating) || 0} (${Number(place.reviewsCount) || 0} ulasan) • ${dist} km</div>
-              <div style="color: #786C68; font-size: 11px; margin-top: 4px;">${escapeHtml(place.address)}</div>
-              <div style="margin-top: 6px; font-weight: 600; color: #FF5722;">Menu: ${escapeHtml(place.featuredMenu)}</div>
-            </div>
-          `);
+          .bindPopup(popupContent);
 
         marker.on('click', () => {
           setSelectedPlace(place);
+        });
+
+        marker.on('popupopen', () => {
+          const btn = document.getElementById(`btn-fav-popup-${place.id}`);
+          if (btn) {
+            btn.onclick = (e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleToggleFavoritePlace(place);
+            };
+          }
         });
 
         markersRef.current.push(marker);
@@ -198,7 +222,7 @@ export const MapSection: React.FC<MapSectionProps> = ({
     } catch {
       // Aman pada lingkungan pengujian DOM
     }
-  }, [userLocation, filteredPlaces]);
+  }, [userLocation, filteredPlaces, favoritePlaceIds]);
 
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showToast = (msg: string) => {

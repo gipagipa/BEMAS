@@ -88,9 +88,14 @@ export const Header: React.FC<HeaderProps> = ({
               <div className="w-7 h-7 rounded-full bg-[#FF5722] text-white flex items-center justify-center font-black text-xs shadow-xs">
                 {Array.from(currentUser.name || 'U')[0]?.toUpperCase() || 'U'}
               </div>
-              <span className="text-xs font-bold text-[#1E1715] hidden md:inline max-w-[120px] truncate">
-                {currentUser.name}
-              </span>
+              <div className="hidden md:flex flex-col text-left">
+                <span className="text-xs font-bold text-[#1E1715] max-w-[120px] truncate leading-tight">
+                  {currentUser.name}
+                </span>
+                <span className="text-[10px] text-[#786C68] font-semibold uppercase leading-none">
+                  {currentUser.role === 'admin' ? 'Admin' : currentUser.role === 'mitra' ? 'Mitra Kuliner' : 'User'}
+                </span>
+              </div>
             </div>
 
             <button

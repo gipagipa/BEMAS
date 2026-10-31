@@ -333,6 +333,7 @@ export const storage = {
   /**
    * UC-01: Registrasi Akun Baru
    * - Validasi kelengkapan data, format email, panjang password (>= 8 karakter), kecocokan konfirmasi
+   * - Pemilihan peran akun: 'user' (Pengguna Umum) atau 'mitra' (Pemilik Usaha Kuliner) sesuai SDD 4.2.1
    * - Cek keunikan email (Exceptional Flow 4a: "Email sudah digunakan")
    * - Enkripsi password satu arah (NFR-03)
    */
@@ -341,6 +342,7 @@ export const storage = {
     email: string;
     password: string;
     confirmPassword?: string;
+    role?: 'user' | 'mitra';
     agreeTerms?: boolean;
   }): AuthResult {
     if (input.agreeTerms === false) {
@@ -353,6 +355,7 @@ export const storage = {
     const cleanName = sanitizeText(input.name);
     const cleanEmail = (input.email || '').trim().toLowerCase();
     const rawPassword = input.password || '';
+    const assignedRole: 'user' | 'mitra' = input.role === 'mitra' ? 'mitra' : 'user';
 
     if (!cleanName || cleanName.length < 2) {
       return {
@@ -410,7 +413,7 @@ export const storage = {
       id: userId,
       name: cleanName,
       email: cleanEmail,
-      role: 'user',
+      role: assignedRole,
       passwordHash: hashPassword(rawPassword, `salt_${userId}`),
       createdAt: new Date().toISOString()
     };

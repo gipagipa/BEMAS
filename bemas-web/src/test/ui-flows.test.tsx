@@ -26,7 +26,8 @@ describe('SDD & TDD Suite 4: Integrasi Antarmuka & Edge Case Flow (UC-01 s.d. UC
     fireEvent.click(submitRegisterBtn);
     expect(screen.getByRole('alert')).toHaveTextContent(/Nama lengkap wajib diisi/i);
 
-    // 3. Isi data registrasi valid
+    // 3. Isi data registrasi valid dengan memilih peran Pemilik Usaha (Mitra) (SDD 4.2.1)
+    fireEvent.click(screen.getByRole('button', { name: /Pilih Peran Pemilik Usaha Mitra/i }));
     fireEvent.change(screen.getByLabelText(/Nama Lengkap/i), {
       target: { value: 'Farhan Pratama' }
     });
@@ -62,8 +63,8 @@ describe('SDD & TDD Suite 4: Integrasi Antarmuka & Edge Case Flow (UC-01 s.d. UC
     });
     fireEvent.click(screen.getByRole('button', { name: /Masuk ke Dapur BEMAS/i }));
 
-    // 7. Berhasil masuk ke halaman utama dengan nama pengguna tampil di Header
-    expect(screen.getByText('Farhan Pratama')).toBeInTheDocument();
+    // 7. Berhasil masuk ke halaman utama dengan nama pengguna tampil di Header & Sidebar
+    expect(screen.getAllByText('Farhan Pratama')[0]).toBeInTheDocument();
 
     // 8. Uji Logout bersih (tidak ada sesi bocor)
     fireEvent.click(screen.getByRole('button', { name: /^Keluar$/i }));
@@ -198,10 +199,13 @@ describe('SDD & TDD Suite 4: Integrasi Antarmuka & Edge Case Flow (UC-01 s.d. UC
     const favRecipeBtn = screen.getAllByTitle(/Simpan Resep Favorit/i)[0];
     fireEvent.click(favRecipeBtn);
 
-    // Harus dialihkan ke halaman Login sesuai flow autentikasi
+    // Harus dialihkan ke halaman Login sesuai flow autentikasi dan menampilkan notice
     expect(
       screen.getByRole('heading', { name: /Masuk ke Akun Dapurmu/i })
     ).toBeInTheDocument();
+    expect(screen.getByRole('status')).toHaveTextContent(
+      /Silakan login terlebih dahulu untuk menyimpan resep olahan favorit/i
+    );
   });
 
   it('Flow UC-05 & UC-06: Pengguna login -> Simpan resep favorit -> Buka tab Favorit Saya -> Item tampil & dapat dihapus', async () => {

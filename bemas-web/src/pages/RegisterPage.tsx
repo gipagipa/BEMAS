@@ -17,6 +17,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [role, setRole] = useState<'user' | 'mitra'>('user');
   const [agreeTerms, setAgreeTerms] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -32,6 +33,7 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({
       email,
       password,
       confirmPassword,
+      role,
       agreeTerms
     });
 
@@ -148,6 +150,48 @@ export const RegisterPage: React.FC<RegisterPageProps> = ({
                       placeholder="nama@email.com"
                       className="w-full bg-[#FFF8F6] border border-[#F0E5E1] rounded-2xl pl-10 pr-4 py-3 text-xs text-[#1E1715] placeholder-[#786C68] focus:outline-hidden focus:border-[#FF5722] focus:bg-white font-medium transition-all"
                     />
+                  </div>
+                </div>
+
+                {/* Role Selector (SDD Bab IV 4.2.1: Memilih peran akun User atau Mitra) */}
+                <div>
+                  <label className="block text-xs font-bold text-[#1E1715] mb-1.5">
+                    Pilih Peran Akun (SDD 4.2) <span className="text-[#FF5722]">*</span>
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                    <button
+                      type="button"
+                      aria-label="Pilih Peran Pengguna Umum"
+                      onClick={() => setRole('user')}
+                      className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                        role === 'user'
+                          ? 'bg-[#FFEBE6] border-[#FF5722] text-[#1E1715] ring-2 ring-[#FF5722]/30 shadow-2xs'
+                          : 'bg-[#FFF8F6] border-[#F0E5E1] text-[#786C68] hover:border-[#FF5722]/40'
+                      }`}
+                    >
+                      <div className="font-bold text-xs flex items-center gap-1.5 text-[#1E1715]">
+                        <span>👤</span>
+                        <span>Pengguna Umum (User)</span>
+                      </div>
+                      <p className="text-[10px] text-[#786C68] mt-0.5">Cari resep masakan &amp; simpan kuliner favorit</p>
+                    </button>
+
+                    <button
+                      type="button"
+                      aria-label="Pilih Peran Pemilik Usaha Mitra"
+                      onClick={() => setRole('mitra')}
+                      className={`p-3 rounded-2xl border text-left transition-all cursor-pointer ${
+                        role === 'mitra'
+                          ? 'bg-[#FFEBE6] border-[#FF5722] text-[#1E1715] ring-2 ring-[#FF5722]/30 shadow-2xs'
+                          : 'bg-[#FFF8F6] border-[#F0E5E1] text-[#786C68] hover:border-[#FF5722]/40'
+                      }`}
+                    >
+                      <div className="font-bold text-xs flex items-center gap-1.5 text-[#1E1715]">
+                        <span>🏪</span>
+                        <span>Pemilik Usaha (Mitra)</span>
+                      </div>
+                      <p className="text-[10px] text-[#786C68] mt-0.5">Kelola profil tempat kuliner &amp; menu makanan</p>
+                    </button>
                   </div>
                 </div>
 

@@ -24,6 +24,7 @@ export function App() {
   // Post-registration state for UC-01 Step 6 -> Redirect to Login with registered email
   const [registeredEmail, setRegisteredEmail] = useState<string>('');
   const [registrationSuccessNotice, setRegistrationSuccessNotice] = useState(false);
+  const [authNotice, setAuthNotice] = useState<string | null>(null);
 
   // Gemini API Key Modal
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
@@ -31,6 +32,7 @@ export function App() {
   const handleLoginSuccess = (user: User) => {
     setCurrentUser(user);
     setRegistrationSuccessNotice(false);
+    setAuthNotice(null);
     setCurrentView('app');
     setActiveTab('home');
   };
@@ -38,6 +40,13 @@ export function App() {
   const handleRegisterSuccess = (email: string) => {
     setRegisteredEmail(email);
     setRegistrationSuccessNotice(true);
+    setAuthNotice(null);
+    setCurrentView('login');
+  };
+
+  const handleRequireLogin = (reason = 'Silakan login terlebih dahulu untuk menyimpan ke favorit') => {
+    setAuthNotice(reason);
+    setRegistrationSuccessNotice(false);
     setCurrentView('login');
   };
 
@@ -61,11 +70,16 @@ export function App() {
         onLoginSuccess={handleLoginSuccess}
         onNavigateToRegister={() => {
           setRegistrationSuccessNotice(false);
+          setAuthNotice(null);
           setCurrentView('register');
         }}
-        onNavigateToHome={() => setCurrentView('app')}
+        onNavigateToHome={() => {
+          setAuthNotice(null);
+          setCurrentView('app');
+        }}
         initialEmail={registeredEmail}
         registrationSuccessNotice={registrationSuccessNotice}
+        authNotice={authNotice || undefined}
       />
     );
   }
@@ -77,9 +91,13 @@ export function App() {
         onRegisterSuccess={handleRegisterSuccess}
         onNavigateToLogin={() => {
           setRegistrationSuccessNotice(false);
+          setAuthNotice(null);
           setCurrentView('login');
         }}
-        onNavigateToHome={() => setCurrentView('app')}
+        onNavigateToHome={() => {
+          setAuthNotice(null);
+          setCurrentView('app');
+        }}
       />
     );
   }
@@ -131,7 +149,11 @@ export function App() {
                 onGoToMap={() => setActiveTab('map')}
                 onOpenApiKeyModal={() => setIsApiKeyModalOpen(true)}
                 currentUser={currentUser}
-                onRequireLogin={() => setCurrentView('login')}
+                onRequireLogin={() =>
+                  handleRequireLogin(
+                    'Silakan login terlebih dahulu untuk menyimpan resep olahan favorit Anda (SRS UC-05).'
+                  )
+                }
               />
             )}
 
@@ -140,7 +162,11 @@ export function App() {
                 onGoToRecipe={() => setActiveTab('recipe')}
                 externalSearchQuery={searchQuery}
                 currentUser={currentUser}
-                onRequireLogin={() => setCurrentView('login')}
+                onRequireLogin={() =>
+                  handleRequireLogin(
+                    'Silakan login terlebih dahulu untuk menyimpan tempat kuliner favorit Anda (SRS UC-06).'
+                  )
+                }
               />
             )}
 

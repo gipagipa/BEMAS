@@ -272,7 +272,9 @@ export const RecipeSection: React.FC<RecipeSectionProps> = ({
               type="button"
               onClick={handleGenerate}
               disabled={loading}
-              className="flex-1 sm:flex-none px-6 py-3 bg-[#FF5722] hover:bg-[#E64A19] text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-colors shrink-0 disabled:opacity-50"
+              aria-label="Cari Resep / Rekomendasikan (Racik Resep AI)"
+              title="Cari Resep / Rekomendasikan (SRS UC-03)"
+              className="flex-1 sm:flex-none px-6 py-3 bg-[#FF5722] hover:bg-[#E64A19] text-white rounded-2xl text-xs font-bold flex items-center justify-center gap-2 shadow-sm transition-colors shrink-0 disabled:opacity-50 cursor-pointer"
             >
               {loading ? (
                 <>
@@ -282,7 +284,7 @@ export const RecipeSection: React.FC<RecipeSectionProps> = ({
               ) : (
                 <>
                   <span>✨</span>
-                  <span>Racik Resep AI</span>
+                  <span>Cari Resep / Racik Resep AI</span>
                 </>
               )}
             </button>

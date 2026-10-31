@@ -29,3 +29,8 @@ dist-ssr/
 # Temporary files
 *.zip
 *.rar
+
+# Media files
+*.mp4
+*.mkv
+*.avi

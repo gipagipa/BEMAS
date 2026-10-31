@@ -152,6 +152,28 @@ describe('SDD & TDD Suite 1: Manajemen Akun & Keamanan (FR-01 / UC-01 & FR-02 / 
       expect(noTerms.success).toBe(false);
       expect(noTerms.error).toContain('Ketentuan Layanan');
     });
+
+    it('SDD 4.2.1: berhasil mendaftarkan akun dengan peran Mitra Kuliner dan menerbitkan sesi ber-role mitra', () => {
+      const res = storage.registerUser({
+        name: 'Warung Bu Siti',
+        email: 'busiti@mitra.bemas.id',
+        password: 'PasswordMitra123',
+        confirmPassword: 'PasswordMitra123',
+        role: 'mitra',
+        agreeTerms: true
+      });
+
+      expect(res.success).toBe(true);
+      expect(res.user?.role).toBe('mitra');
+
+      const loginRes = storage.authenticateUser('busiti@mitra.bemas.id', 'PasswordMitra123');
+      expect(loginRes.success).toBe(true);
+      expect(loginRes.user?.role).toBe('mitra');
+
+      const tokenCheck = verifyJwtToken(loginRes.token!);
+      expect(tokenCheck.valid).toBe(true);
+      expect(tokenCheck.payload?.role).toBe('mitra');
+    });
   });
 
   describe('FR-02 / UC-02, NFR-04 & NFR-05: Login Akun, Token JWT, & Proteksi Brute-Force', () => {
