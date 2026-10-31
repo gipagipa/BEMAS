@@ -1,6 +1,6 @@
 import { ChatMessage } from '../types';
 import { storage } from './storage';
-import { CURATED_RECIPES } from './gemini';
+import { CURATED_RECIPES, getAvailableGeminiModel } from './gemini';
 
 /**
  * Pertanyaan saran awal untuk mempermudah pengguna berinteraksi dengan agen
@@ -180,7 +180,8 @@ export async function sendAgentMessage(
   // Jika ada Gemini API Key, gunakan model Gemini Flash untuk respon interaktif dinamis
   if (apiKey) {
     try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      const activeModel = await getAvailableGeminiModel(apiKey);
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${apiKey}`;
       const payload = {
         contents: [
           {

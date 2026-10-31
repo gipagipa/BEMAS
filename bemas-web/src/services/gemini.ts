@@ -443,6 +443,63 @@ export function filterRecipesByCategory(
   });
 }
 
+let cachedWorkingModel: string = 'gemini-1.5-flash-latest';
+
+/**
+ * Mencari model Gemini yang aktif dan didukung oleh akun / project pengguna
+ * dengan memanggil ModelService.ListModels atau menggunakan kandidat yang valid
+ */
+export async function getAvailableGeminiModel(
+  apiKey: string,
+  forceRefresh: boolean = false
+): Promise<string> {
+  if (!forceRefresh && cachedWorkingModel) return cachedWorkingModel;
+
+  const cleanKey = apiKey.trim();
+  try {
+    const listUrl = `https://generativelanguage.googleapis.com/v1beta/models?key=${cleanKey}`;
+    const listRes = await fetch(listUrl);
+    if (listRes.ok) {
+      const data = await listRes.json();
+      if (Array.isArray(data?.models)) {
+        const supported = data.models.filter(
+          (m: { name?: string; supportedGenerationMethods?: string[] }) =>
+            Array.isArray(m.supportedGenerationMethods) &&
+            m.supportedGenerationMethods.includes('generateContent')
+        );
+
+        if (supported.length > 0) {
+          const names: string[] = supported.map((m: { name: string }) =>
+            m.name.replace(/^models\//, '')
+          );
+          // Prioritas 1: Model flash aktif (misal gemini-1.5-flash-latest, gemini-1.5-flash-002, gemini-2.0-flash-exp)
+          const flashModel = names.find(
+            n => n.includes('flash') && !n.includes('deprecated')
+          );
+          if (flashModel) {
+            cachedWorkingModel = flashModel;
+            return flashModel;
+          }
+          // Prioritas 2: Model pro aktif
+          const proModel = names.find(
+            n => n.includes('pro') && !n.includes('vision')
+          );
+          if (proModel) {
+            cachedWorkingModel = proModel;
+            return proModel;
+          }
+          cachedWorkingModel = names[0];
+          return names[0];
+        }
+      }
+    }
+  } catch {
+    // Abaikan error jaringan saat list models, beralih ke daftar kandidat
+  }
+
+  return cachedWorkingModel || 'gemini-1.5-flash-latest';
+}
+
 /**
  * Memvalidasi apakah Google Gemini API Key aktif dan dapat terhubung secara realtime
  */
@@ -454,49 +511,73 @@ export async function validateGeminiApiKey(
     return { valid: false, message: 'Kunci API kosong. Silakan masukkan kunci API Anda.' };
   }
 
-  try {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${clean}`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: 'Balas hanya satu kata: AKTIF' }] }],
-        generationConfig: {
-          maxOutputTokens: 10,
-          temperature: 0.1
+  // Cari model yang tersedia dari ListModels secara aktual
+  const primaryModel = await getAvailableGeminiModel(clean, true);
+
+  // Kandidat model yang dicoba secara bertahap jika model tertentu tidak tersedia
+  const candidateModels = Array.from(
+    new Set([
+      primaryModel,
+      'gemini-1.5-flash-latest',
+      'gemini-1.5-flash-002',
+      'gemini-1.5-flash-001',
+      'gemini-2.0-flash-exp',
+      'gemini-1.5-pro',
+      'gemini-pro'
+    ])
+  );
+
+  let lastErrorMsg = '';
+
+  for (const candidate of candidateModels) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${candidate}:generateContent?key=${clean}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: 'Balas hanya satu kata: AKTIF' }] }],
+          generationConfig: {
+            maxOutputTokens: 10,
+            temperature: 0.1
+          }
+        })
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (reply) {
+          cachedWorkingModel = candidate;
+          return {
+            valid: true,
+            message: `Koneksi berhasil! Kunci API aktif dan terhubung ke Google ${candidate}.`,
+            model: candidate
+          };
         }
-      })
-    });
-
-    if (!response.ok) {
-      const errData = await response.json().catch(() => null);
-      const googleErr = errData?.error?.message || `HTTP ${response.status} (${response.statusText})`;
-      return {
-        valid: false,
-        message: `Google Gemini menolak kunci API: ${googleErr}`
-      };
+      } else {
+        const errData = await response.json().catch(() => null);
+        lastErrorMsg = errData?.error?.message || `HTTP ${response.status} (${response.statusText})`;
+        // Jika kunci API salah (API_KEY_INVALID), jangan lanjutkan loop karena kunci tidak valid
+        if (
+          lastErrorMsg.includes('API_KEY_INVALID') ||
+          (response.status === 400 && lastErrorMsg.toLowerCase().includes('api key not valid'))
+        ) {
+          return {
+            valid: false,
+            message: `Google Gemini menolak kunci API: Kunci API tidak valid (${lastErrorMsg})`
+          };
+        }
+      }
+    } catch (err) {
+      lastErrorMsg = err instanceof Error ? err.message : 'Koneksi internet bermasalah';
     }
-
-    const data = await response.json();
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (reply) {
-      return {
-        valid: true,
-        message: 'Koneksi berhasil! Kunci API aktif dan terhubung ke Google Gemini 1.5 Flash.',
-        model: 'gemini-1.5-flash'
-      };
-    }
-
-    return {
-      valid: false,
-      message: 'Respons dari Google Gemini kosong atau tidak valid.'
-    };
-  } catch (err) {
-    return {
-      valid: false,
-      message: `Gagal menghubungi server Google: ${err instanceof Error ? err.message : 'Koneksi internet bermasalah'}`
-    };
   }
+
+  return {
+    valid: false,
+    message: `Google Gemini menolak kunci API: ${lastErrorMsg}`
+  };
 }
 
 /**
@@ -536,6 +617,7 @@ export async function generateRecipesWithAI(
 
   if (apiKey) {
     try {
+      const activeModel = await getAvailableGeminiModel(apiKey);
       const prompt = `Anda adalah koki profesional cerdas dan asisten kuliner aplikasi BEMAS (Beli atau Masak).
 Pengguna memiliki bahan-bahan makanan berikut: ${validIngredients.join(', ')}.
 ${preferences?.maxTime ? `Preferensi waktu: Maksimal ${preferences.maxTime}.` : ''}
@@ -569,7 +651,7 @@ KEMBALIKAN HANYA FORMAT JSON VALID berupa array of objects tanpa teks pembuka/pe
 ]`;
 
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${apiKey}`,
         {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
