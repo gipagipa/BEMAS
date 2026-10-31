@@ -443,7 +443,7 @@ export function filterRecipesByCategory(
   });
 }
 
-let cachedWorkingModel: string = 'gemini-3.8-flash';
+let cachedWorkingModel: string = 'gemini-3.5-flash';
 export let cachedWorkingVersion: string = 'v1beta';
 
 /**
@@ -492,13 +492,13 @@ export async function getAvailableGeminiModel(
 
   const discovered = await fetchGoogleModelsList(apiKey);
   if (discovered.length > 0) {
-    // Prioritaskan model generasi modern sesuai rekomendasi Google
+    // Prioritaskan model aktif yang stabil bebas dari overload 503
     const preferredOrder = [
-      'gemini-3.8-flash',
       'gemini-3.5-flash',
-      'gemini-flash-latest',
-      'gemini-3.1-flash-lite',
-      'gemini-2.5-flash'
+      'gemini-flash-lite-latest',
+      'gemini-3.6-flash',
+      'gemini-3.8-flash',
+      'gemini-flash-latest'
     ];
     for (const pref of preferredOrder) {
       if (discovered.includes(pref)) {
@@ -515,12 +515,12 @@ export async function getAvailableGeminiModel(
     return discovered[0];
   }
 
-  return cachedWorkingModel || 'gemini-3.8-flash';
+  return cachedWorkingModel || 'gemini-3.5-flash';
 }
 
 /**
- * Memvalidasi apakah Google Gemini API Key aktif dan dapat terhubung secara realtime
- * (Single clean request dengan timeout controller dan logging diagnostik lengkap)
+ * Memvalidasi apakah Google Gemini API Key aktif dan dapat terhubung secara realtime.
+ * Mendukung graceful failover jika satu model sedang overload (HTTP 503 high demand).
  */
 export async function validateGeminiApiKey(
   apiKey: string
@@ -530,105 +530,115 @@ export async function validateGeminiApiKey(
     return { valid: false, message: 'Kunci API kosong. Silakan masukkan kunci API Anda.' };
   }
 
-  // Gunakan model Flash terkini yang direkomendasikan Google
-  const targetModel = 'gemini-3.8-flash';
-  const encodedKey = encodeURIComponent(clean);
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${encodedKey}`;
+  // Model-model stabil aktif yang siap dicoba secara berurutan jika terjadi 503 (high demand)
+  const candidateModels = [
+    'gemini-3.5-flash',
+    'gemini-flash-lite-latest',
+    'gemini-3.6-flash',
+    'gemini-3.8-flash'
+  ];
 
   console.info('[BEMAS API Validator] 🔍 Memulai uji API key...', {
-    targetModel,
     keyPrefix: clean.substring(0, 6) + '...',
-    keyLength: clean.length
+    keyLength: clean.length,
+    candidates: candidateModels
   });
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => {
-    console.warn('[BEMAS API Validator] ⏱️ Timeout 10 detik tercapai, membatalkan request.');
-    controller.abort();
-  }, 10000);
+  const encodedKey = encodeURIComponent(clean);
+  let lastErrorMsg = '';
+  let lastStatus = 0;
 
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      signal: controller.signal,
-      headers: {
-        'Content-Type': 'application/json',
-        'x-goog-api-key': clean
-      },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: 'Balas hanya satu kata: AKTIF' }] }],
-        generationConfig: {
-          maxOutputTokens: 10,
-          temperature: 0.1
-        }
-      })
-    });
+  for (const targetModel of candidateModels) {
+    console.info(`[BEMAS API Validator] 📡 Menguji model: ${targetModel}`);
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${encodedKey}`;
 
-    clearTimeout(timeoutId);
-    console.info('[BEMAS API Validator] 📡 Respon diterima dari Google:', response.status, response.statusText);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
 
-    if (response.ok) {
-      const data = await response.json().catch(() => ({}));
-      const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-      console.info('[BEMAS API Validator] ✅ Koneksi berhasil!', { targetModel, reply });
-      cachedWorkingModel = targetModel;
-      return {
-        valid: true,
-        message: `Koneksi berhasil! Kunci API aktif dan terhubung ke Google ${targetModel}.`,
-        model: targetModel
-      };
-    }
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-goog-api-key': clean
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: 'Balas hanya satu kata: AKTIF' }] }],
+          generationConfig: {
+            maxOutputTokens: 100,
+            temperature: 0.1
+          }
+        })
+      });
 
-    const errData = await response.json().catch(() => null);
-    const rawMsg: string = errData?.error?.message || `HTTP ${response.status} (${response.statusText})`;
-    console.warn('[BEMAS API Validator] ⚠️ Server Google menolak permintaan:', response.status, rawMsg);
+      clearTimeout(timeoutId);
+      console.info(`[BEMAS API Validator] Status respon ${targetModel}:`, response.status);
 
-    // Analisis spesifik status error dari server Google untuk panduan langsung ke pengguna
-    if (rawMsg.includes('free tier is not available')) {
-      return {
-        valid: false,
-        message:
-          'Akses Free Tier belum aktif pada Project Google Cloud ini: ' +
-          '"The Gemini API free tier is not available for this project". ' +
-          'Catatan: Meskipun memakai akun personal @gmail.com, Google mengaitkan API key ke project yang dibuat. ' +
-          'Solusi: Di Google AI Studio (https://aistudio.google.com/app/apikey), klik "Create API key" lalu pilih opsi "Create API key in NEW project" (bukan di project lama), atau aktifkan billing di https://aistudio.google.com/billing.'
-      };
-    }
+      if (response.ok) {
+        cachedWorkingModel = targetModel;
+        console.info(`[BEMAS API Validator] ✅ Berhasil terhubung ke Google ${targetModel}!`);
+        return {
+          valid: true,
+          message: `Koneksi berhasil! Kunci API aktif dan terhubung ke Google ${targetModel}.`,
+          model: targetModel
+        };
+      }
 
-    if (rawMsg.includes('API_KEY_INVALID') || (response.status === 400 && rawMsg.toLowerCase().includes('api key not valid'))) {
-      return {
-        valid: false,
-        message: 'Kunci API tidak valid. Pastikan Anda menyalin seluruh string kunci dari Google AI Studio.'
-      };
-    }
+      lastStatus = response.status;
+      const errData = await response.json().catch(() => null);
+      const rawMsg: string = errData?.error?.message || `HTTP ${response.status} (${response.statusText})`;
+      lastErrorMsg = rawMsg;
 
-    return {
-      valid: false,
-      message: `Google Gemini (${response.status}): ${rawMsg}`
-    };
-  } catch (err) {
-    clearTimeout(timeoutId);
-    console.error('[BEMAS API Validator] ❌ Error saat menghubungi server Google:', err);
+      // Jika error 503 (High demand) atau 404 (Not found), coba model kandidat berikutnya
+      if (response.status === 503 || rawMsg.includes('high demand') || response.status === 404) {
+        console.warn(`[BEMAS API Validator] ⚠️ Model ${targetModel} overload (HTTP ${response.status}), mencoba kandidat berikutnya...`);
+        continue;
+      }
 
-    if (err instanceof Error && (err.name === 'AbortError' || err.message?.includes('aborted'))) {
-      return {
-        valid: false,
-        message: 'Waktu permintaan habis (timeout 10 detik). Server Google tidak merespons. Periksa koneksi internet, VPN, atau ekstensi pemblokir iklan (adblocker/Brave Shields).'
-      };
-    }
+      // Jika error otorisasi/billing spesifik, tidak perlu coba model lain
+      if (rawMsg.includes('free tier is not available')) {
+        return {
+          valid: false,
+          message:
+            'Akses Free Tier belum aktif pada Project Google Cloud ini: ' +
+            '"The Gemini API free tier is not available for this project". ' +
+            'Solusi: Di Google AI Studio (https://aistudio.google.com/app/apikey), klik "Create API key" lalu pilih opsi "Create API key in NEW project", atau aktifkan billing di https://aistudio.google.com/billing.'
+        };
+      }
 
-    if (err instanceof TypeError && err.message?.includes('Failed to fetch')) {
+      if (rawMsg.includes('API_KEY_INVALID') || (response.status === 400 && rawMsg.toLowerCase().includes('api key not valid'))) {
+        return {
+          valid: false,
+          message: 'Kunci API tidak valid. Pastikan Anda menyalin seluruh string kunci dari Google AI Studio.'
+        };
+      }
+
+      // Jika error lain yang bukan 503/404, laporkan langsung
       return {
         valid: false,
-        message: 'Gagal mengirim permintaan jaringan (Failed to fetch). Kemungkinan penyebab: Ekstensi browser (uBlock, AdBlock, Privacy Badger, atau Brave Shields) memblokir domain generativelanguage.googleapis.com, atau koneksi terputus.'
+        message: `Google Gemini (${response.status}): ${rawMsg}`
       };
-    }
+    } catch (err) {
+      clearTimeout(timeoutId);
+      console.error(`[BEMAS API Validator] ❌ Error saat memanggil ${targetModel}:`, err);
 
-    return {
-      valid: false,
-      message: `Gagal menghubungi server Google: ${err instanceof Error ? err.message : 'Koneksi internet bermasalah'}`
-    };
+      if (err instanceof TypeError && err.message?.includes('Failed to fetch')) {
+        return {
+          valid: false,
+          message: 'Gagal mengirim permintaan jaringan (Failed to fetch). Kemungkinan penyebab: Ekstensi browser (uBlock, AdBlock, Privacy Badger, atau Brave Shields) memblokir domain generativelanguage.googleapis.com, atau koneksi internet terputus.'
+        };
+      }
+      // Lanjut coba kandidat lain
+    }
   }
+
+  return {
+    valid: false,
+    message: lastErrorMsg
+      ? `Google Gemini (${lastStatus}): ${lastErrorMsg}`
+      : 'Gagal terhubung ke seluruh model Gemini. Periksa koneksi internet Anda.'
+  };
 }
 
 /**
